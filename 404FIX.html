@@ -56,7 +56,7 @@
 		<title>{{EN_NAME}} / Аниме</title>
 		<!-- <meta content="{{DESCRIPTION}}" name="description" /> -->
 		<meta name="csrf-param" content="authenticity_token" />
-		<meta name="csrf-token" content="_JTaTtpKK97BySvM652TUTOCjMGcCeP34HWY4dnlaTV3tRdrAtixRSCA7xfoAjIovcLis13orOZaC9CLnVnlKw" />
+		<meta name="csrf-token" content="{{AUTHENTICITY_TOKEN}}" />
 		<script nomodule="" src="/outdated-browser.js"></script>
 		<link rel="stylesheet" href="/packs/css/vendors-0e6f18ae.css" media="all" data-turbolinks-track="reload" />
 		<link rel="stylesheet" href="/assets/application-e8a9e2ef1fc16f2e585e5e6a84349525c00261d1f65a7071e9458b296cabd8db.css" media="all" data-turbolinks-track="reload" />
@@ -717,204 +717,284 @@
 								</div>
 							</div>
 							<div class="editor-container">
-							<div class="b-options-floated">
-								<span class="action return-to-reply">назад</span>
-							</div>
-							
-							<div class="subheadline">Твой комментарий</div>
-							
-							<form class="simple_form b-form new_comment" 
-									data-type="json" 
-									novalidate="novalidate" 
-									action="/api/comments" 
-									accept-charset="UTF-8" 
-									data-remote="true" 
-									method="post">
-								
-								<!-- Скрытые поля -->
-								<input type="hidden" 
-									name="authenticity_token" 
-									value="{{AUTHENTICITY_TOKEN}}" 
-									autocomplete="off">
-								<input name="frontend" type="hidden" value="true">
-								
-								<!-- Данные комментария -->
-								<div class="b-input hidden comment_commentable_id">
-								<input class="hidden" 
-										autocomplete="off" 
-										type="hidden" 
-										value="{{TOPIC_ID}}"
-										name="comment[commentable_id]">
+								<div class="b-options-floated">
+									<span class="action return-to-reply">назад</span>
 								</div>
-								
-								<div class="b-input hidden comment_commentable_type">
-								<input class="hidden" 
-										autocomplete="off" 
-										type="hidden" 
-										value="Topic" 
-										name="comment[commentable_type]">
-								</div>
-								
-								<div class="b-input hidden comment_is_offtopic">
-								<input class="hidden" 
-										autocomplete="off" 
-										type="hidden" 
-										value="false" 
-										name="comment[is_offtopic]">
-								</div>
-
-								<!-- Редактор -->
-								<div class="b-shiki_editor shiki_editor-selector" 
-									data-dynamic="shiki_editor" 
-									data-field_name="comment[body]">
-								
-								<!-- Панель инструментов -->
-								<div class="controls">
-									<aside class="buttons">
-									<div class="editor-controls">
-										<span class="editor-bold b-tooltipped" data-direction="top" original-title="Жирный"></span>
-										<span class="editor-italic b-tooltipped" data-direction="top" original-title="Курсив"></span>
-										<span class="editor-underline b-tooltipped" data-direction="top" original-title="Подчёркнутый"></span>
-										<span class="editor-strike b-tooltipped" data-direction="top" original-title="Зачёркнутый"></span>
-										<span class="editor-link b-tooltipped" data-direction="top" original-title="Ссылка"></span>
-										<span class="editor-image b-tooltipped" data-direction="top" original-title="Ссылка на картинку"></span>
-										<span class="editor-quote b-tooltipped" data-direction="top" original-title="Цитата"></span>
-										<span class="editor-spoiler b-tooltipped" data-direction="top" original-title="Спойлер"></span>
-										
-										<label class="editor-file b-tooltipped" 
-											data-direction="top" 
-											original-title="Загрузить изображение">
-										<input type="file">
-										</label>
-										
-										<span class="editor-smiley b-tooltipped" 
-											data-direction="top" 
-											original-title="Смайлик"></span>
+								<div class="subheadline">Твой комментарий</div>
+								<form
+									class="simple_form b-form new_comment"
+									data-type="json"
+									novalidate="novalidate"
+									action="/api/comments"
+									accept-charset="UTF-8"
+									data-remote="true"
+									method="post"
+									>
+									<!-- Скрытые поля -->
+									<input
+										type="hidden"
+										name="authenticity_token"
+										value="{{AUTHENTICITY_TOKEN}}"
+										autocomplete="off"
+										/>
+									<input name="frontend" type="hidden" value="true" />
+									<!-- Данные комментария -->
+									<div class="b-input hidden comment_commentable_id">
+										<input
+											class="hidden"
+											autocomplete="off"
+											type="hidden"
+											value="{{TOPIC_ID}}"
+											name="comment[commentable_id]"
+											/>
 									</div>
-									</aside>
-									
-									<aside class="markers">
-									<div class="b-offtopic_marker active off" data-text="оффтоп"></div>
-									</aside>
-								</div>
-
-								<!-- Блок смайликов -->
-								<div class="smileys hidden" data-href="https://shikimori.one/comments/smileys">
-									<div class="ajax-loading" title="Загрузка..."></div>
-								</div>
-
-								<!-- Диалог вставки ссылок -->
-								<div class="links hidden hidden-block">
-									<label>
-									<input type="radio" name="link_type" value="url" data-placeholder="Укажи адрес страницы...">
-									<span>ссылка</span>
-									</label>
-									<label>
-									<input type="radio" name="link_type" value="anime" data-placeholder="Укажи название аниме..." data-autocomplete="https://shikimori.one/animes/autocomplete">
-									<span>аниме</span>
-									</label>
-									<label>
-									<input type="radio" name="link_type" value="manga" data-placeholder="Укажи название манги..." data-autocomplete="https://shikimori.one/mangas/autocomplete">
-									<span>манга</span>
-									</label>
-									<label>
-									<input type="radio" name="link_type" value="ranobe" data-placeholder="Укажи название ранобэ..." data-autocomplete="https://shikimori.one/ranobe/autocomplete">
-									<span>ранобэ</span>
-									</label>
-									<label>
-									<input type="radio" name="link_type" value="character" data-placeholder="Укажи имя персонажа..." data-autocomplete="https://shikimori.one/characters/autocomplete">
-									<span>персонаж</span>
-									</label>
-									<label>
-									<input type="radio" name="link_type" value="person" data-placeholder="Укажи имя человека..." data-autocomplete="https://shikimori.one/people/autocomplete">
-									<span>человек</span>
-									</label>
-									
-									<div class="input-container">
-									<input type="text" 
-											name="link_value" 
-											value="" 
-											class="link-value ac_input" 
-											autocomplete="off">
-									<div class="b-button ok" data-type="links">OK</div>
+									<div class="b-input hidden comment_commentable_type">
+										<input
+											class="hidden"
+											autocomplete="off"
+											type="hidden"
+											value="Topic"
+											name="comment[commentable_type]"
+											/>
 									</div>
-								</div>
-
-								<!-- Диалог вставки изображений -->
-								<div class="images hidden hidden-block">
-									<span>Вставка изображения:</span>
-									<div class="input-container">
-									<input type="text" 
-											name="image_value" 
-											value="" 
-											class="link-value" 
-											placeholder="Укажи адрес картинки...">
-									<div class="b-button ok" data-type="images">OK</div>
+									<div class="b-input hidden comment_is_offtopic">
+										<input
+											class="hidden"
+											autocomplete="off"
+											type="hidden"
+											value="false"
+											name="comment[is_offtopic]"
+											/>
 									</div>
-								</div>
-
-								<!-- Диалог цитирования -->
-								<div class="quotes hidden hidden-block">
-									<span>Цитирование пользователя:</span>
-									<div class="input-container">
-									<input type="text" 
-											name="quote_value" 
-											value="" 
-											class="link-value ac_input" 
-											placeholder="Укажи имя пользователя..." 
-											data-autocomplete="https://shikimori.one/users/autocomplete" 
-											autocomplete="off">
-									<div class="b-button ok" data-type="quotes">OK</div>
+									<!-- Редактор -->
+									<div
+										class="b-shiki_editor shiki_editor-selector"
+										data-dynamic="shiki_editor"
+										data-field_name="comment[body]"
+										>
+										<!-- Панель инструментов -->
+										<div class="controls">
+											<aside class="buttons">
+												<div class="editor-controls">
+													<span
+														class="editor-bold b-tooltipped"
+														data-direction="top"
+														original-title="Жирный"
+														></span>
+													<span
+														class="editor-italic b-tooltipped"
+														data-direction="top"
+														original-title="Курсив"
+														></span>
+													<span
+														class="editor-underline b-tooltipped"
+														data-direction="top"
+														original-title="Подчёркнутый"
+														></span>
+													<span
+														class="editor-strike b-tooltipped"
+														data-direction="top"
+														original-title="Зачёркнутый"
+														></span>
+													<span
+														class="editor-link b-tooltipped"
+														data-direction="top"
+														original-title="Ссылка"
+														></span>
+													<span
+														class="editor-image b-tooltipped"
+														data-direction="top"
+														original-title="Ссылка на картинку"
+														></span>
+													<span
+														class="editor-quote b-tooltipped"
+														data-direction="top"
+														original-title="Цитата"
+														></span>
+													<span
+														class="editor-spoiler b-tooltipped"
+														data-direction="top"
+														original-title="Спойлер"
+														></span>
+													<label
+														class="editor-file b-tooltipped"
+														data-direction="top"
+														original-title="Загрузить изображение"
+														>
+														<input type="file" />
+													</label>
+													<span
+														class="editor-smiley b-tooltipped"
+														data-direction="top"
+														original-title="Смайлик"
+														></span>
+												</div>
+											</aside>
+											<aside class="markers">
+												<div class="b-offtopic_marker active off" data-text="оффтоп"></div>
+											</aside>
+										</div>
+										<!-- Блок смайликов -->
+										<div
+											class="smileys hidden"
+											data-href="https://shikimori.one/comments/smileys"
+											>
+											<div class="ajax-loading" title="Загрузка..."></div>
+										</div>
+										<!-- Диалог вставки ссылок -->
+										<div class="links hidden hidden-block">
+											<label>
+												<input
+													type="radio"
+													name="link_type"
+													value="url"
+													data-placeholder="Укажи адрес страницы..."
+													/>
+												<span>ссылка</span>
+											</label>
+											<label>
+												<input
+													type="radio"
+													name="link_type"
+													value="anime"
+													data-placeholder="Укажи название аниме..."
+													data-autocomplete="https://shikimori.one/animes/autocomplete"
+													/>
+												<span>аниме</span>
+											</label>
+											<label>
+												<input
+													type="radio"
+													name="link_type"
+													value="manga"
+													data-placeholder="Укажи название манги..."
+													data-autocomplete="https://shikimori.one/mangas/autocomplete"
+													/>
+												<span>манга</span>
+											</label>
+											<label>
+												<input
+													type="radio"
+													name="link_type"
+													value="ranobe"
+													data-placeholder="Укажи название ранобэ..."
+													data-autocomplete="https://shikimori.one/ranobe/autocomplete"
+													/>
+												<span>ранобэ</span>
+											</label>
+											<label>
+												<input
+													type="radio"
+													name="link_type"
+													value="character"
+													data-placeholder="Укажи имя персонажа..."
+													data-autocomplete="https://shikimori.one/characters/autocomplete"
+													/>
+												<span>персонаж</span>
+											</label>
+											<label>
+												<input
+													type="radio"
+													name="link_type"
+													value="person"
+													data-placeholder="Укажи имя человека..."
+													data-autocomplete="https://shikimori.one/people/autocomplete"
+													/>
+												<span>человек</span>
+											</label>
+											<div class="input-container">
+												<input
+													type="text"
+													name="link_value"
+													value=""
+													class="link-value ac_input"
+													autocomplete="off"
+													/>
+												<div class="b-button ok" data-type="links">OK</div>
+											</div>
+										</div>
+										<!-- Диалог вставки изображений -->
+										<div class="images hidden hidden-block">
+											<span>Вставка изображения:</span>
+											<div class="input-container">
+												<input
+													type="text"
+													name="image_value"
+													value=""
+													class="link-value"
+													placeholder="Укажи адрес картинки..."
+													/>
+												<div class="b-button ok" data-type="images">OK</div>
+											</div>
+										</div>
+										<!-- Диалог цитирования -->
+										<div class="quotes hidden hidden-block">
+											<span>Цитирование пользователя:</span>
+											<div class="input-container">
+												<input
+													type="text"
+													name="quote_value"
+													value=""
+													class="link-value ac_input"
+													placeholder="Укажи имя пользователя..."
+													data-autocomplete="https://shikimori.one/users/autocomplete"
+													autocomplete="off"
+													/>
+												<div class="b-button ok" data-type="quotes">OK</div>
+											</div>
+										</div>
+										<!-- Прогресс загрузки -->
+										<div class="b-upload_progress">
+											<div class="bar"></div>
+										</div>
+										<!-- Основное поле ввода -->
+										<div class="body">
+											<div class="editor">
+												<div class="b-input text required comment_body">
+													<label class="text required control-label">
+														<abbr title="Обязательное поле">*</abbr> Текст
+													</label>
+													<textarea
+														class="text required editor-area pastable"
+														placeholder="Текст комментария"
+														tabindex="0"
+														data-upload_url="https://shikimori.one/api/user_images?linked_type=Comment"
+														data-item_type="comment"
+														name="comment[body]"
+														></textarea>
+												</div>
+											</div>
+											<div class="preview"></div>
+										</div>
+										<!-- Футер редактора -->
+										<footer>
+											<input
+												type="submit"
+												name="commit"
+												value="Написать"
+												id="submit_907900.5100256373"
+												class="btn-primary btn-submit btn"
+												data-disable-with="Отправка…"
+												autocomplete="off"
+												tabindex="0"
+												/>
+											<div class="unpreview" tabindex="0">Вернуться к редактированию</div>
+											<div
+												class="b-button preview"
+												data-preview_url="https://shikimori.one/comments/preview"
+												tabindex="0"
+												>
+												Предпросмотр
+											</div>
+											<div class="hide">Скрыть</div>
+											<div class="about-bb_codes">
+												<a href="https://shikimori.one/bb_codes" target="_blaNK"
+													>примеры BBCode</a
+													>
+											</div>
+										</footer>
 									</div>
-								</div>
-
-								<!-- Прогресс загрузки -->
-								<div class="b-upload_progress">
-									<div class="bar"></div>
-								</div>
-
-								<!-- Основное поле ввода -->
-								<div class="body">
-									<div class="editor">
-									<div class="b-input text required comment_body">
-										<label class="text required control-label">
-										<abbr title="Обязательное поле">*</abbr> Текст
-										</label>
-										<textarea class="text required editor-area pastable" 
-												placeholder="Текст комментария" 
-												tabindex="0" 
-												data-upload_url="https://shikimori.one/api/user_images?linked_type=Comment" 
-												data-item_type="comment" 
-												name="comment[body]"></textarea>
-									</div>
-									</div>
-									<div class="preview"></div>
-								</div>
-
-								<!-- Футер редактора -->
-								<footer>
-									<input type="submit" 
-										name="commit" 
-										value="Написать" 
-										id="submit_907900.5100256373" 
-										class="btn-primary btn-submit btn" 
-										data-disable-with="Отправка…" 
-										autocomplete="off" 
-										tabindex="0">
-									
-									<div class="unpreview" tabindex="0">Вернуться к редактированию</div>
-									<div class="b-button preview" 
-										data-preview_url="https://shikimori.one/comments/preview" 
-										tabindex="0">Предпросмотр</div>
-									
-									<div class="hide">Скрыть</div>
-									
-									<div class="about-bb_codes">
-									<a href="https://shikimori.one/bb_codes" target="_blaNK">примеры BBCode</a>
-									</div>
-								</footer>
-								</div>
-							</form>
+								</form>
 							</div>
 						</div>
 						<aside class="l-menu">
