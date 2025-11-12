@@ -8,6 +8,7 @@
 // @downloadURL  https://raw.githubusercontent.com/404FT/404FIX/refs/heads/main/404FIX.js
 // @match        https://shikimori.one/*
 // @grant        none
+// @license      MIT
 // ==/UserScript==
 
 (function() {
@@ -437,5 +438,6 @@
     };
 
     init();
+
 
 })();
