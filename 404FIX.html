@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html data-color-mode="light">
+	<head>
+		<meta charset="utf-8" />
+		<meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible" />
+		<meta content="width=device-width, initial-scale=1.0" name="viewport" />
+		<link href="/favicon.ico" rel="icon" type="image/x-icon" />
+		<link href="/favicons/favicon-16x16.png" rel="icon" sizes="16x16" type="image/png" />
+		<link href="/favicons/favicon-32x32.png" rel="icon" sizes="32x32" type="image/png" />
+		<link href="/favicons/favicon-96x96.png" rel="icon" sizes="96x96" type="image/png" />
+		<link href="/favicons/favicon-192x192.png" rel="icon" sizes="192x192" type="image/png" />
+		<link href="/favicons/manifest.json" rel="manifest" />
+		<link href="/favicons/apple-touch-icon-57x57.png" rel="apple-touch-icon" sizes="57x57" />
+		<link href="/favicons/apple-touch-icon-60x60.png" rel="apple-touch-icon" sizes="60x60" />
+		<link href="/favicons/apple-touch-icon-72x72.png" rel="apple-touch-icon" sizes="72x72" />
+		<link href="/favicons/apple-touch-icon-76x76.png" rel="apple-touch-icon" sizes="76x76" />
+		<link href="/favicons/apple-touch-icon-114x114.png" rel="apple-touch-icon" sizes="114x114" />
+		<link href="/favicons/apple-touch-icon-120x120.png" rel="apple-touch-icon" sizes="120x120" />
+		<link href="/favicons/apple-touch-icon-144x144.png" rel="apple-touch-icon" sizes="144x144" />
+		<link href="/favicons/apple-touch-icon-152x152.png" rel="apple-touch-icon" sizes="152x152" />
+		<link href="/favicons/apple-touch-icon-180x180.png" rel="apple-touch-icon" sizes="180x180" />
+		<link color="#123" href="/favicons/safari-pinned-tab.svg" rel="mask-icon" />
+		<meta content="#000000" name="theme-color" />
+		<meta content="#000000" name="msapplication-TileColor" />
+		<meta content="/favicons/ms-icon-144x144.png" name="msapplication-TileImage" />
+		<meta content="/favicons/browserconfig.xml" name="msapplication-config" />
+		<link href="/favicons/opera-icon-228x228.png" rel="icon" sizes="228x228" />
+		<link href="/search.xml" rel="search" title="shikimori.one" type="application/opensearchdescription+xml" />
+		<link href="/yandex-tableau-widget-manifest.json" rel="yandex-tableau-widget" />
+		<link href="https://mc.yandex.ru" rel="preconnect" />
+		<link href="https://fonts.googleapis.com" rel="preconnect" />
+		<link href="https://fonts.gstatic.com" rel="preconnect" />
+		<link href="https://fonts.googleapis.com" rel="preconnect" />
+		<link href="https://fonts.gstatic.com" rel="preconnect" />
+		<link href="https://dere.shikimori.one" rel="preconnect" />
+		<meta content="video.tv_show" property="og:type" />
+		<meta content="{{EN_NAME}}" property="og:title" />
+		<!-- <meta content="{{DESCRIPTION}}" property="og:description" /> -->
+		<meta content="http://cdn.anime-recommend.ru/previews/{{MYANIMELIST_ID}}.jpg" property="og:image" />
+		<meta content="image/jpeg" property="og:image:type" />
+		<meta content="1200" property="og:image:width" />
+		<meta content="630" property="og:image:height" />
+		<meta content="https://shikimori.one/animes/{{ID}}" property="og:url" />
+		<meta content="Шикимори" property="og:site_name" />
+		<meta content="1440" property="video:duration" />
+		<meta content="2024-03-22" property="video:release_date" />
+		<meta content="Приключения" property="video:tag" />
+		<meta content="Драма" property="video:tag" />
+		<meta content="Фэнтези" property="video:tag" />
+		<meta content="Сёнен" property="video:tag" />
+		<meta content="summary_large_image" property="twitter:card" />
+		<meta content="{{EN_NAME}}" name="twitter:title" />
+		<!-- <meta content="{{DESCRIPTION}}" name="twitter:description" /> -->
+		<meta content="http://cdn.anime-recommend.ru/previews/{{MYANIMELIST_ID}}.jpg" name="twitter:image" />
+		<meta content="Шикимори" name="twitter:site" />
+		<title>{{EN_NAME}} / Аниме</title>
+		<!-- <meta content="{{DESCRIPTION}}" name="description" /> -->
+		<meta name="csrf-param" content="authenticity_token" />
+		<meta name="csrf-token" content="_JTaTtpKK97BySvM652TUTOCjMGcCeP34HWY4dnlaTV3tRdrAtixRSCA7xfoAjIovcLis13orOZaC9CLnVnlKw" />
+		<script nomodule="" src="/outdated-browser.js"></script>
+		<link rel="stylesheet" href="/packs/css/vendors-0e6f18ae.css" media="all" data-turbolinks-track="reload" />
+		<link rel="stylesheet" href="/assets/application-e8a9e2ef1fc16f2e585e5e6a84349525c00261d1f65a7071e9458b296cabd8db.css" media="all" data-turbolinks-track="reload" />
+		<script src="/packs/js/vendors-14c9aaee16aa763c36d9.js" data-turbolinks-track="reload" defer="defer"></script>
+		<script src="/packs/js/application-dee20e8725d1eda15c8b.js" data-turbolinks-track="reload" defer="defer"></script>
+	</head>
+	<body class="p-animes p-animes-show p-db_entries p-db_entries-show x1200" data-camo_url="https://camo-v3.shikimori.one/" data-env="production" data-faye="[&quot;/private-{{USER_ID}}&quot;]" data-faye_url="https://faye-v2.shikimori.one/" data-js_export_supervisor_keys="[&quot;user_rates&quot;,&quot;topics&quot;,&quot;comments&quot;,&quot;polls&quot;]" data-locale="ru" data-localized_genres="ru" data-localized_names="ru" data-server_time="2025-11-03T17:53:43+03:00" data-user="{&quot;id&quot;:{{USER_ID}},&quot;url&quot;:&quot;https://shikimori.one/{{USER_NICK}}&quot;,&quot;is_moderator&quot;:false,&quot;ignored_topics&quot;:[],&quot;ignored_users&quot;:[],&quot;is_day_registered&quot;:true,&quot;is_week_registered&quot;:true,&quot;is_comments_auto_collapsed&quot;:true,&quot;is_comments_auto_loaded&quot;:true}" id="animes_show">
+		<style id="custom_css" type="text/css"></style>
+		<div id="outdated"></div>
+		<header class="l-top_menu-v2">
+			<div class="menu-logo">
+				<a class="logo-container" href="https://shikimori.one/" title="Шикимори">
+					<div class="glyph"></div>
+					<div class="logo"></div>
+				</a>
+				<div class="menu-dropdown main">
+					<span class="menu-icon trigger mobile" tabindex="-1"></span>
+					<span class="submenu-triangle icon-anime" tabindex="0">
+						<span>Аниме</span>
+					</span>
+					<div class="submenu">
+						<div class="legend">База данных</div>
+						<a class="icon-anime" href="https://shikimori.one/animes" tabindex="-1" title="Аниме">Аниме</a>
+						<a class="icon-manga" href="https://shikimori.one/mangas" tabindex="-1" title="Манга">Манга</a>
+						<a class="icon-ranobe" href="https://shikimori.one/ranobe" tabindex="-1" title="Ранобэ">Ранобэ</a>
+						<div class="legend">Сообщество</div>
+						<a class="icon-forum" href="https://shikimori.one/forum" tabindex="-1" title="Форум">Форум</a>
+						<a class="icon-clubs" href="https://shikimori.one/clubs" tabindex="-1" title="Клубы">Клубы</a>
+						<a class="icon-collections" href="https://shikimori.one/collections" tabindex="-1" title="Коллекции">Коллекции</a>
+						<a class="icon-critiques" href="https://shikimori.one/forum/critiques" tabindex="-1" title="Рецензии">Рецензии</a>
+						<a class="icon-articles" href="https://shikimori.one/articles" tabindex="-1" title="Статьи">Статьи</a>
+						<a class="icon-users" href="https://shikimori.one/users" tabindex="-1" title="Пользователи">Пользователи</a>
+						<div class="legend">Разное</div>
+						<a class="icon-contests" href="https://shikimori.one/contests" tabindex="-1" title="Турниры">Турниры</a>
+						<a class="icon-calendar" href="https://shikimori.one/ongoings" tabindex="-1" title="Календарь">Календарь</a>
+						<div class="legend">Информация</div>
+						<a class="icon-info" href="https://shikimori.one/about" tabindex="-1" title="О сайте">О сайте</a>
+						<a class="icon-socials" href="https://shikimori.one/forum/site/270099-my-v-sotsialnyh-setyah" tabindex="-1" title="Мы в соц. сетях">Мы в соц. сетях</a>
+						<a class="icon-moderation" href="https://shikimori.one/moderations" tabindex="-1" title="Модерация">Модерация</a>
+					</div>
+				</div>
+			</div>
+			<div class="menu-icon search mobile"></div>
+			<div class="global-search" data-autocomplete_anime_url="https://shikimori.one/animes/autocomplete/v2" data-autocomplete_character_url="https://shikimori.one/characters/autocomplete/v2" data-autocomplete_manga_url="https://shikimori.one/mangas/autocomplete/v2" data-autocomplete_person_url="https://shikimori.one/people/autocomplete/v2" data-autocomplete_ranobe_url="https://shikimori.one/ranobe/autocomplete/v2" data-default-mode="anime" data-search_anime_url="https://shikimori.one/animes" data-search_character_url="https://shikimori.one/characters" data-search_manga_url="https://shikimori.one/mangas" data-search_person_url="https://shikimori.one/people" data-search_ranobe_url="https://shikimori.one/ranobe">
+				<label class="field">
+					<input placeholder="Поиск..." type="text" />
+					<span class="clear" tabindex="-1"></span>
+					<span class="hotkey-marker"></span>
+					<span class="search-marker"></span>
+				</label>
+				<div class="search-results">
+					<div class="inner"></div>
+				</div>
+			</div>
+			<a class="menu-icon forum desktop" href="https://shikimori.one/forum" title="Форум"></a>
+			<a class="menu-icon contest" data-count="2" href="https://shikimori.one/contests/current" title="Текущий турнир"></a>
+			<div class="menu-dropdown profile">
+				<span tabindex="0">
+					<a class="submenu-triangle" href="https://shikimori.one/{{USER_NICK}}">
+						<img alt="{{USER_NICK}}" src="{{USER_AVATAR_X48}}" srcset="{{USER_AVATAR_X80}} 2x" title="{{USER_NICK}}" />
+						<span class="nickname">{{USER_NICK}}</span>
+					</a>
+				</span>
+				<div class="submenu">
+					<div class="legend">Аккаунт</div>
+					<a class="icon-profile" href="https://shikimori.one/{{USER_NICK}}" tabindex="-1" title="Профиль">
+						<span class="text">Профиль</span>
+					</a>
+					<a class="icon-anime_list" href="https://shikimori.one/{{USER_NICK}}/list/anime" tabindex="-1" title="Список аниме">
+						<span class="text">Список аниме</span>
+					</a>
+					<a class="icon-manga_list" href="https://shikimori.one/{{USER_NICK}}/list/manga" tabindex="-1" title="Список манги">
+						<span class="text">Список манги</span>
+					</a>
+					<a class="icon-mail" href="https://shikimori.one/{{USER_NICK}}/dialogs" tabindex="-1" title="Почта">
+						<span class="text">Почта</span>
+					</a>
+					<a class="icon-achievements" href="https://shikimori.one/{{USER_NICK}}/achievements" tabindex="-1" title="Достижения">
+						<span class="text">Достижения</span>
+					</a>
+					<a class="icon-clubs" href="https://shikimori.one/{{USER_NICK}}/clubs" tabindex="-1" title="Клубы">
+						<span class="text">Клубы</span>
+					</a>
+					<a class="icon-settings" href="https://shikimori.one/{{USER_NICK}}/edit/account" tabindex="-1" title="Настройки">
+						<span class="text">Настройки</span>
+					</a>
+					<div class="legend">Сайт</div>
+					<a class="icon-site_rules" href="https://shikimori.one/forum/site/588641-pravila-sayta-v2" tabindex="-1" title="Правила сайта">
+						<span class="text">Правила сайта</span>
+					</a>
+					<a class="icon-faq" href="https://shikimori.one/clubs/1093-faq-chasto-zadavaemye-voprosy" tabindex="-1" title="FAQ">
+						<span class="text">FAQ</span>
+					</a>
+					<a class="icon-sign_out" data-method="delete" href="https://shikimori.one/users/sign_out" tabindex="-1">Выход</a>
+				</div>
+			</div>
+		</header>
+		<section class="l-page" itemscope="" itemtype="http://schema.org/Movie">
+			<div>
+				<div class="menu-toggler">
+					<div class="toggler"></div>
+				</div>
+				<header class="head">
+					<meta content="Sousou no Frieren" itemprop="name" />
+					<h1>{{RU_NAME}}
+						<span class="b-separator inline">/</span>
+						{{EN_NAME}}
+					</h1>
+					<div class="b-breadcrumbs" itemscope="" itemtype="https://schema.org/BreadcrumbList">
+						<span itemprop="itemListElement" itemscope="" itemtype="https://schema.org/ListItem">
+							<a class="b-link" href="https://shikimori.one/animes" itemprop="item" title="Аниме">
+								<span itemprop="name">Аниме</span>
+							</a>
+							<meta content="0" itemprop="position" />
+						</span>
+						<span itemprop="itemListElement" itemscope="" itemtype="https://schema.org/ListItem">
+							<a class="b-link" href="https://shikimori.one/animes/kind/tv" itemprop="item" title="Сериалы">
+								<span itemprop="name">Сериалы</span>
+							</a>
+							<meta content="1" itemprop="position" />
+						</span>
+						<span itemprop="itemListElement" itemscope="" itemtype="https://schema.org/ListItem">
+							<a class="b-link" href="https://shikimori.one/animes?genre=27-Shounen" itemprop="item" title="Сёнен">
+								<span itemprop="name">Сёнен</span>
+							</a>
+							<meta content="2" itemprop="position" />
+						</span>
+					</div>
+				</header>
+				<div class="menu-slide-outer x199">
+					<div class="menu-slide-inner">
+						<div class="l-content">
+							<div class="block">
+								<meta content="https://shikimori.one/animes/{{ID}}" itemprop="url" />
+								<meta content="Sousou no Frieren" itemprop="headline" />
+								<meta content="Провожающая в последний путь Фрирен" itemprop="alternativeHeadline" />
+								<meta content="2023-09-29" itemprop="dateCreated" />
+								<div class="b-db_entry">
+									<div class="c-image">
+										<div class="cc block">
+											<div class="c-poster">
+												<div class="b-db_entry-poster b-image unprocessed" data-href="{{POSTER}}" data-poster_id="0">
+													<meta content="{{POSTER}}" itemprop="image" />
+													<picture>
+														<source srcset="{{POSTER}} 1x, {{POSTER}} 2x" type="image/webp" />
+														<img alt="{{RU_NAME}}" height="318" src="{{POSTER}}" srcset="{{POSTER}} 2x" width="225" />
+													</picture>
+													<span class="marker">
+														<span class="marker-text">705x995</span>
+													</span>
+												</div>
+											</div>
+											<div class="c-actions">
+												<div class="b-subposter-actions">
+													<a class="b-subposter-action new_comment b-tooltipped unprocessed to-process" data-direction="top" data-dynamic="day_registered" data-text="Комментировать" title="Комментировать"></a>
+													<a class="b-subposter-action new_review b-tooltipped unprocessed to-process" data-direction="top" data-dynamic="day_registered" data-text="Написать отзыв" href="https://shikimori.one/animes/{{ID}}/reviews/new" title="Написать отзыв"></a>
+													<a class="b-subposter-action new_critique b-tooltipped unprocessed to-process" data-direction="top" data-dynamic="week_registered" data-text="Написать рецензию" href="https://shikimori.one/animes/{{ID}}/critiques/new?critique%5Btarget_id%5D={{ID}}&amp;critique%5Btarget_type%5D=Anime&amp;critique%5Buser_id%5D=225227" title="Написать рецензию"></a>
+													<a class="b-subposter-action fav-add b-tooltipped unprocessed to-process" data-add_text="Добавить в избранное" data-direction="top" data-dynamic="authorized" data-kind="" data-remote="true" data-remove_text="Удалить из избранного" data-type="json" href="https://shikimori.one/api/favorites/Anime/{{ID}}"></a>
+													<a class="b-subposter-action edit b-tooltipped unprocessed to-process" data-direction="top" data-dynamic="authorized" data-text="Редактировать" href="https://shikimori.one/animes/{{ID}}/edit" title="Редактировать"></a>
+												</div>
+											</div>
+										</div>
+										<div class="b-user_rate to-process anime-{{ID}}" data-dynamic="user_rate" data-entry="{&quot;id&quot;:{{ID}},&quot;episodes&quot;:28,&quot;chapters&quot;:null,&quot;volumes&quot;:null}" data-extended="true" data-model="{&quot;id&quot;:null,&quot;user_id&quot;:null,&quot;target_id&quot;:{{ID}},&quot;score&quot;:0,&quot;status&quot;:&quot;planned&quot;,&quot;episodes&quot;:0,&quot;created_at&quot;:null,&quot;updated_at&quot;:null,&quot;target_type&quot;:&quot;Anime&quot;,&quot;volumes&quot;:0,&quot;chapters&quot;:0,&quot;text&quot;:null,&quot;rewatches&quot;:0}" data-target_id="{{ID}}" data-target_type="Anime" data-track_user_rate="user_rate:anime:{{ID}}"></div>
+									</div>
+									<div class="c-about">
+										<div class="cc">
+											<div class="c-info-left">
+												<div class="subheadline">Информация</div>
+												<div class="block">
+													<div class="b-entry-info">
+														<div class='line-container'>
+															<div class='line'>
+																<div class='key'>Тип:</div>
+																<div class='value'>{{TYPE}}</div>
+															</div>
+														</div>
+														<div class='line-container'>
+															<div class='line'>
+																<div class='key'>Эпизоды:</div>
+																<div class='value'>{{EPISODES}}</div>
+															</div>
+														</div>
+														<div class='line-container'>
+															<div class='line'>
+																<div class='key'>Длительность эпизода:</div>
+																<div class='value'>
+																	<span>{{DURATION}} мин.</span>
+																</div>
+															</div>
+														</div>
+														<div class='line-container'>
+															<div class='line'>
+																<div class='key'>Статус:</div>
+																<div class='value'>
+																	<span class="b-anime_status_tag released" data-text="{{STATUS}}"></span>
+																	&nbsp;
+																	<span class="b-tooltipped dotted mobile unprocessed" data-direction="right" title="С 29 сентября 2023 г. по 22 марта 2024 г.">в 2023-2024 гг.</span>
+																</div>
+															</div>
+														</div>
+														<div class='line-container'>
+															<div class='line'>
+																{{GENRES}}
+															</div>
+														</div>
+														<div class='line-container'>
+															<div class='line'>
+																<div class='key'>Рейтинг:</div>
+																<div class='value'>
+																	<span class="b-tooltipped dotted mobile unprocessed" data-direction="right" title="{{RATING_TOOLTIP}}">{{RATING}}</span>
+																</div>
+															</div>
+														</div>
+														<div class='line-container'>
+															<div class='line'>
+																<div class='key'>Первоисточник:</div>
+																<div class='value'>{{SOURCE}}</div>
+															</div>
+														</div>
+														<div class='line-container'>
+															<div class='line'>
+																<div class='key'>Альтернативные названия:</div>
+																<div class='value'>
+																	<span class="other-names to-process" data-clickloaded-url="https://shikimori.one/animes/{{ID}}/other_names" data-dynamic="clickloaded">
+																		<span>···</span>
+																	</span>
+																</div>
+															</div>
+														</div>
+														<!---->
+														<div class="additional-links">
+															<div class="line-container">
+																<div class="key">У аниме:</div>
+																<span class="linkeable" data-href="https://shikimori.one/animes/{{ID}}/critiques">--- рецензия</span>
+																<span class="linkeable" data-href="https://shikimori.one/animes/{{ID}}/reviews">--- отзывов</span>
+																<span class="linkeable" data-href="https://shikimori.one/forum/animanga/anime-{{ID}}/{{TOPIC_ID}}-obsuzhdenie-anime">{{COMMENTS_COUNT}} комментариев</span>
+																<span class="linkeable" data-href="https://shikimori.one/animes/{{ID}}/coub">---</span>
+															</div>
+														</div>
+														<!---->
+													</div>
+												</div>
+											</div>
+											<div class="c-info-right">
+												<div class="block" itemprop="aggregateRating" itemscope itemtype="http://schema.org/AggregateRating">
+													<div class="subheadline m5">Рейтинг</div>
+													<div class="scores">
+														<meta content="10" itemprop="bestRating" />
+														<meta content="{{SCORE}}" itemprop="ratingValue" />
+														<meta content="{{RATING_COUNT}}" itemprop="ratingCount" />
+														<div class="b-rate">
+															<div class="stars-container">
+																<div class="hoverable-trigger"></div>
+																<div class="stars score score-{{SCORE_ROUND}}"></div>
+																<div class="stars hover"></div>
+																<div class="stars background"></div>
+															</div>
+															<div class="text-score">
+																<div class="score-value score-{{SCORE_ROUND}}">{{SCORE}}</div>
+																<div class="score-notice">{{RATING_NOTICE}}</div>
+															</div>
+														</div>
+													</div>
+												</div>
+												<div class="block contest_winners">
+													<!--
+													<div class="medal"></div>
+													<div class="winners">
+														<div class="winner">№ 1 в 
+															<a class="b-link" href="https://shikimori.one/contests/170-luchshee-anime-2023-goda" title="Лучшее аниме 2023 года">Лучшее аниме 2023 года</a>
+														</div>
+														<div class="winner">№ 1 в 
+															<a class="b-link" href="https://shikimori.one/contests/164-luchshee-anime-osennego-sezona-2023" title="Лучшее аниме осеннего сезона 2023">Лучшее аниме осеннего сезона 2023</a>
+														</div>
+													</div>
+													-->
+												</div>
+												<!-- ДЛЯ БЛОКА СТУДИЙ -->
+												<style>
+													.studio-list {
+													display: flex;
+													flex-wrap: wrap;
+													gap: 6px;
+													align-items: center;
+												}
+												.studio-logo {
+													width: 64px;
+													height: auto;
+													max-height: 64px;
+													object-fit: contain;
+													border-radius: 4px;
+												}
+												</style>
+												<div class="block">
+													<div class="subheadline">Студия</div>
+													<div class="studio-list">
+														{{STUDIOS}}
+													</div>
+												</div>
+												<!--
+												<div class="watch-online">
+													<div class="line">
+														<div class="b-link_button dark linkeable" data-href="https://shikimori.one/animes/{{ID}}/watch" rel="nofollow" target="_blank" title="Шикимори">Онлайн просмотр</div>
+													</div>
+													<div class="kind">Шикимори</div>
+												</div>
+												-->
+											</div>
+										</div>
+									</div>
+									<div class="c-description">
+										<div class="subheadline m5">Описание</div>
+										<div class="block">
+											<div class="b-lang_trigger" data-eng="eng" data-rus="рус">
+												<span>eng</span>
+											</div>
+											<div class="description-other" style="display: none">
+												<div class="text">
+													<div class="b-text_with_paragraphs">В разработке.</div>
+												</div>
+												<div class="b-source">
+													<div class="source">
+														<div class="key">Источник:</div>
+														<div class="val">
+															<a class='b-link' href="http://myanimelist.net/anime/{{ID}}">myanimelist.net</a>
+														</div>
+													</div>
+												</div>
+											</div>
+											<div class="description-current">
+												<div class="text" itemprop="description">
+													<div class="b-text_with_paragraphs">{{DESCRIPTION}}</div>
+												</div>
+												<div class="b-source">
+													<div class="contributors">
+														<div class="key">Автор:</div>
+														<div class="b-user16">
+															<span>Неизвестно</span>
+														</div>
+													</div>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+								<div class="cc-related-authors">
+									<div class="c-column block_m">
+										<div class="b-options-floated mobile-phone">
+											<span class="linkeable" data-href="https://shikimori.one/animes/{{ID}}/related">Напрямую</span>
+											<span class="linkeable" data-href="https://shikimori.one/animes/{{ID}}/chronology">Хронология</span>
+											<span class="linkeable" data-href="https://shikimori.one/animes/{{ID}}/franchise">Франшиза</span>
+										</div>
+										<div class="subheadline">Связанное</div>
+										<div class="cc" style="text-align: center; padding: 20px; color: #666; font-style: italic;">
+											в разработке
+										</div>
+									</div>
+									<div class="c-column c-authors block_m">
+										<div class="subheadline">
+											<span class="linkeable" data-href="https://shikimori.one/animes/{{ID}}/staff">Авторы</span>
+										</div>
+										<div style="text-align: center; padding: 20px; color: #666; font-style: italic;">
+											в разработке
+										</div>
+									</div>
+								</div>
+								<div class="cc-characters">
+									<div class="c-characters m0">
+										<div class="subheadline">
+											<span class="linkeable" data-href="https://shikimori.one/animes/{{ID}}/characters">Главные герои</span>
+										</div>
+										<div class="cc m0" style="text-align: center; padding: 20px; color: #666; font-style: italic;">
+											в разработке
+										</div>
+									</div>
+								</div>
+								<!--
+												<div class="cc m0 two-videos">
+													<div class="c-screenshots">
+														<div class="subheadline">
+															<span class="linkeable" data-href="https://shikimori.one/animes/{{ID}}/screenshots">Кадры</span>
+														</div>
+														<div class="cc">
+															<a class="c-screenshot b-image entry-1" href="https://shikimori.one/system/screenshots/original/b8a37b9a2b5e01e581f3313278a4e38bee9a1527.jpg?1696000681" rel="screenshot" title="Кадр 1 из Провожающая в последний путь Фрирен">
+																<img alt="Кадр 1 из {{TYPE}}" data-id="817523" src="https://shikimori.one/system/screenshots/x166/b8a37b9a2b5e01e581f3313278a4e38bee9a1527.jpg?1696000681" srcset="https://shikimori.one/system/screenshots/x332/b8a37b9a2b5e01e581f3313278a4e38bee9a1527.jpg?1696000681" title="Кадр 1 из Провожающая в последний путь Фрирен" />
+																<span class="marker"></span>
+															</a>
+															<a class="c-screenshot b-image entry-2" href="https://shikimori.one/system/screenshots/original/de4d563c7524eb560351c6a166078f0a5f44407c.jpg?1696000683" rel="screenshot" title="Кадр 2 из Провожающая в последний путь Фрирен">
+																<img alt="Кадр 2 из {{TYPE}}" data-id="817524" src="https://shikimori.one/system/screenshots/x166/de4d563c7524eb560351c6a166078f0a5f44407c.jpg?1696000683" srcset="https://shikimori.one/system/screenshots/x332/de4d563c7524eb560351c6a166078f0a5f44407c.jpg?1696000683" title="Кадр 2 из Провожающая в последний путь Фрирен" />
+																<span class="marker"></span>
+															</a>
+															<a class="c-screenshot b-image entry-3" href="https://shikimori.one/system/screenshots/original/a222e9ed6510a0b8cb0bc9e9d2291beb306e4b5c.jpg?1696000685" rel="screenshot" title="Кадр 3 из Провожающая в последний путь Фрирен">
+																<img alt="Кадр 3 из {{TYPE}}" data-id="817525" src="https://shikimori.one/system/screenshots/x166/a222e9ed6510a0b8cb0bc9e9d2291beb306e4b5c.jpg?1696000685" srcset="https://shikimori.one/system/screenshots/x332/a222e9ed6510a0b8cb0bc9e9d2291beb306e4b5c.jpg?1696000685" title="Кадр 3 из Провожающая в последний путь Фрирен" />
+																<span class="marker"></span>
+															</a>
+															<a class="c-screenshot b-image entry-4" href="https://shikimori.one/system/screenshots/original/ad4f61192d399270a923c49a6a96b77a7f9343f6.jpg?1696000686" rel="screenshot" title="Кадр 4 из Провожающая в последний путь Фрирен">
+																<img alt="Кадр 4 из {{TYPE}}" data-id="817526" src="https://shikimori.one/system/screenshots/x166/ad4f61192d399270a923c49a6a96b77a7f9343f6.jpg?1696000686" srcset="https://shikimori.one/system/screenshots/x332/ad4f61192d399270a923c49a6a96b77a7f9343f6.jpg?1696000686" title="Кадр 4 из Провожающая в последний путь Фрирен" />
+																<span class="marker"></span>
+															</a>
+															<a class="c-screenshot b-image entry-5" href="https://shikimori.one/system/screenshots/original/cf444c4a4004dcc72571e0965bb2f7883a7ce8d9.jpg?1696000688" rel="screenshot" title="Кадр 5 из Провожающая в последний путь Фрирен">
+																<img alt="Кадр 5 из {{TYPE}}" data-id="817527" src="https://shikimori.one/system/screenshots/x166/cf444c4a4004dcc72571e0965bb2f7883a7ce8d9.jpg?1696000688" srcset="https://shikimori.one/system/screenshots/x332/cf444c4a4004dcc72571e0965bb2f7883a7ce8d9.jpg?1696000688" title="Кадр 5 из Провожающая в последний путь Фрирен" />
+																<span class="marker"></span>
+															</a>
+														</div>
+													</div>
+													<div class="c-videos">
+														<div class="subheadline">
+															<span class="linkeable" data-href="https://shikimori.one/animes/{{ID}}/videos">Видео</span>
+														</div>
+														<div class="cc">
+															<div class="b-video unprocessed youtube c-video entry-1">
+																<a class="video-link" data-href="https://youtube.com/embed/f5ZEiJyqDKU" href="https://youtu.be/f5ZEiJyqDKU">
+																	<img data-id="53836" src="//img.youtube.com/vi/f5ZEiJyqDKU/hqdefault.jpg" />
+																</a>
+																<span class="name" title="PV1">PV1</span>
+																<span class="marker">PV</span>
+															</div>
+															<div class="b-video unprocessed youtube c-video entry-2">
+																<a class="video-link" data-href="https://youtube.com/embed/bTccQKVzVlk" href="https://youtu.be/bTccQKVzVlk">
+																	<img data-id="54006" src="//img.youtube.com/vi/bTccQKVzVlk/hqdefault.jpg" />
+																</a>
+																<span class="name" title="PV1 (AniMeow) Субтитры">PV1 (AniMeow) Субтитры</span>
+																<span class="marker">PV</span>
+															</div>
+															<div class="b-video unprocessed youtube c-video entry-3">
+																<a class="video-link" data-href="https://youtube.com/embed/I8jX4EDoLcA" href="https://youtu.be/I8jX4EDoLcA">
+																	<img data-id="55033" src="//img.youtube.com/vi/I8jX4EDoLcA/hqdefault.jpg" />
+																</a>
+																<span class="name" title="PV1 (ASU Media Group) Озвучка">PV1 (ASU Media Group) Озвучка</span>
+																<span class="marker">PV</span>
+															</div>
+															<div class="b-video unprocessed youtube c-video entry-4">
+																<a class="video-link" data-href="https://youtube.com/embed/itKPyGXrCVA" href="https://youtu.be/itKPyGXrCVA">
+																	<img data-id="56806" src="//img.youtube.com/vi/itKPyGXrCVA/hqdefault.jpg" />
+																</a>
+																<span class="name" title="PV2">PV2</span>
+																<span class="marker">PV</span>
+															</div>
+														</div>
+													</div>
+												</div>
+												-->
+								<!--
+												<div class="block">
+													<div class="subheadline">
+														<span class="linkeable" data-href="https://shikimori.one/animes/{{ID}}/similar">Похожее</span>
+													</div>
+													<div class="cc cc-similar">
+														<article class="c-column b-catalog_entry c-anime entry-33352 " data-track_user_rate="catalog_entry:anime:33352" id="33352" itemscope="" itemtype="http://schema.org/Movie">
+															<a class="cover anime-tooltip" data-delay="150" data-tooltip_url="https://shikimori.one/animes/33352-violet-evergarden/tooltip" href="https://shikimori.one/animes/33352-violet-evergarden" title="Violet Evergarden">
+																<span class="image-decor">
+																	<span class="image-cutter">
+																		<picture>
+																			<source srcset="https://shikimori.one/uploads/poster/animes/33352/preview-d8a200520a728658e9002ee6e58015ad.webp, https://shikimori.one/uploads/poster/animes/33352/preview_2x-38c3924198d48c93c85522258663eb6a.webp 2x" type="image/webp" />
+																			<img alt="Вайолет Эвергарден" src="https://shikimori.one/uploads/poster/animes/33352/preview_alt-67dbd279fe812a389def489876a9377e.jpeg" srcset="https://shikimori.one/uploads/poster/animes/33352/preview_alt_2x-67f8ee84866466dff034d0e30b4cbbbc.jpeg 2x" />
+																		</picture>
+																	</span>
+																</span>
+																<span class="title two_lined" itemprop="name">
+																	<span class='name-en'>Violet Evergarden</span>
+																	<span class='name-ru'>Вайолет Эвергарден</span>
+																</span>
+																<span class="misc"></span>
+															</a>
+															<meta content="https://shikimori.one/system/animes/original/33352.jpg" itemprop="image" />
+															<meta content="https://shikimori.one/system/animes/x48/33352.jpg" itemprop="thumbnailUrl" />
+															<meta content="2018-01-11" itemprop="dateCreated" />
+														</article>
+														<article class="c-column b-catalog_entry c-anime entry-41025 " data-track_user_rate="catalog_entry:anime:41025" id="41025" itemscope="" itemtype="http://schema.org/Movie">
+															<a class="cover anime-tooltip" data-delay="150" data-tooltip_url="https://shikimori.one/animes/41025-fumetsu-no-anata-e/tooltip" href="https://shikimori.one/animes/41025-fumetsu-no-anata-e" title="Fumetsu no Anata e">
+																<span class="image-decor">
+																	<span class="image-cutter">
+																		<picture>
+																			<source srcset="https://shikimori.one/uploads/poster/animes/41025/preview-a2d295fe636bc332321552d5de7554c6.webp, https://shikimori.one/uploads/poster/animes/41025/preview_2x-29b975c83298fbcf03ef7614d753f9b1.webp 2x" type="image/webp" />
+																			<img alt="Для тебя, Бессмертный" src="https://shikimori.one/uploads/poster/animes/41025/preview_alt-51fe79328d65069593fed95c30408ff7.jpeg" srcset="https://shikimori.one/uploads/poster/animes/41025/preview_alt_2x-d6f2087c19e09616b0722479474f44f5.jpeg 2x" />
+																		</picture>
+																	</span>
+																</span>
+																<span class="title two_lined" itemprop="name">
+																	<span class='name-en'>Fumetsu no Anata e</span>
+																	<span class='name-ru'>Для тебя, Бессмертный</span>
+																</span>
+																<span class="misc"></span>
+															</a>
+															<meta content="https://shikimori.one/system/animes/original/41025.jpg" itemprop="image" />
+															<meta content="https://shikimori.one/system/animes/x48/41025.jpg" itemprop="thumbnailUrl" />
+															<meta content="2021-04-12" itemprop="dateCreated" />
+														</article>
+														<article class="c-column b-catalog_entry c-anime entry-35851 " data-track_user_rate="catalog_entry:anime:35851" id="35851" itemscope="" itemtype="http://schema.org/Movie">
+															<a class="cover anime-tooltip" data-delay="150" data-tooltip_url="https://shikimori.one/animes/35851-sayonara-no-asa-ni-yakusoku-no-hana-wo-kazarou/tooltip" href="https://shikimori.one/animes/35851-sayonara-no-asa-ni-yakusoku-no-hana-wo-kazarou" title="Sayonara no Asa ni Yakusoku no Hana wo Kazarou">
+																<span class="image-decor">
+																	<span class="image-cutter">
+																		<picture>
+																			<source srcset="https://shikimori.one/uploads/poster/animes/35851/preview-110acc41d455d8a6b2156c261e7e3bb7.webp, https://shikimori.one/uploads/poster/animes/35851/preview_2x-1e5eb997b3aa9130b4974a9965dcc5f6.webp 2x" type="image/webp" />
+																			<img alt="Укрась прощальное утро цветами обещания" src="https://shikimori.one/uploads/poster/animes/35851/preview_alt-2c887e5648ac084f7f5db86591ef204d.jpeg" srcset="https://shikimori.one/uploads/poster/animes/35851/preview_alt_2x-21086df46a191965fd38f83a4b61c211.jpeg 2x" />
+																		</picture>
+																	</span>
+																</span>
+																<span class="title two_lined" itemprop="name">
+																	<span class='name-en'>Sayonara no Asa ni Yakusoku no Hana wo Kazarou</span>
+																	<span class='name-ru'>Укрась прощальное утро цветами обещания</span>
+																</span>
+																<span class="misc"></span>
+															</a>
+															<meta content="https://shikimori.one/system/animes/original/35851.jpg" itemprop="image" />
+															<meta content="https://shikimori.one/system/animes/x48/35851.jpg" itemprop="thumbnailUrl" />
+															<meta content="2018-02-24" itemprop="dateCreated" />
+														</article>
+														<article class="c-column b-catalog_entry c-anime entry-52701 " data-track_user_rate="catalog_entry:anime:52701" id="52701" itemscope="" itemtype="http://schema.org/Movie">
+															<a class="cover anime-tooltip" data-delay="150" data-tooltip_url="https://shikimori.one/animes/52701-dungeon-meshi/tooltip" href="https://shikimori.one/animes/52701-dungeon-meshi" title="Dungeon Meshi">
+																<span class="image-decor">
+																	<span class="image-cutter">
+																		<picture>
+																			<source srcset="https://shikimori.one/uploads/poster/animes/52701/preview-68b0df9b2e7d0971094b18c6190a0c5d.webp, https://shikimori.one/uploads/poster/animes/52701/preview_2x-567b4cff2a2f2dcde8d5e37778620770.webp 2x" type="image/webp" />
+																			<img alt="Подземелье вкусностей" src="https://shikimori.one/uploads/poster/animes/52701/preview_alt-16dfba4f950e1ccd441bd6358f2b862a.jpeg" srcset="https://shikimori.one/uploads/poster/animes/52701/preview_alt_2x-a149a3b13319e61dee7aeb1750d755c6.jpeg 2x" />
+																		</picture>
+																	</span>
+																</span>
+																<span class="title two_lined" itemprop="name">
+																	<span class='name-en'>Dungeon Meshi</span>
+																	<span class='name-ru'>Подземелье вкусностей</span>
+																</span>
+																<span class="misc"></span>
+															</a>
+															<meta content="https://shikimori.one/system/animes/original/52701.jpg" itemprop="image" />
+															<meta content="https://shikimori.one/system/animes/x48/52701.jpg" itemprop="thumbnailUrl" />
+															<meta content="2024-01-04" itemprop="dateCreated" />
+														</article>
+														<article class="c-column b-catalog_entry c-anime entry-40571 " data-track_user_rate="catalog_entry:anime:40571" id="40571" itemscope="" itemtype="http://schema.org/Movie">
+															<a class="cover anime-tooltip" data-delay="150" data-tooltip_url="https://shikimori.one/animes/40571-majo-no-tabitabi/tooltip" href="https://shikimori.one/animes/40571-majo-no-tabitabi" title="Majo no Tabitabi">
+																<span class="image-decor">
+																	<span class="image-cutter">
+																		<picture>
+																			<source srcset="https://shikimori.one/uploads/poster/animes/40571/preview-f6cea9d6630ed67318a1dee8d396925d.webp, https://shikimori.one/uploads/poster/animes/40571/preview_2x-dabd9490b3d19e5ed7bdf61346184a50.webp 2x" type="image/webp" />
+																			<img alt="Путешествие Элейны" src="https://shikimori.one/uploads/poster/animes/40571/preview_alt-d5a3aa731695d0e1c2dce122fb626f05.jpeg" srcset="https://shikimori.one/uploads/poster/animes/40571/preview_alt_2x-463bce5b30e9077f2dbfec7e8165ae6c.jpeg 2x" />
+																		</picture>
+																	</span>
+																</span>
+																<span class="title two_lined" itemprop="name">
+																	<span class='name-en'>Majo no Tabitabi</span>
+																	<span class='name-ru'>Путешествие Элейны</span>
+																</span>
+																<span class="misc"></span>
+															</a>
+															<meta content="https://shikimori.one/system/animes/original/40571.jpg" itemprop="image" />
+															<meta content="https://shikimori.one/system/animes/x48/40571.jpg" itemprop="thumbnailUrl" />
+															<meta content="2020-10-02" itemprop="dateCreated" />
+														</article>
+														<article class="c-column b-catalog_entry c-anime entry-457 " data-track_user_rate="catalog_entry:anime:457" id="457" itemscope="" itemtype="http://schema.org/Movie">
+															<a class="cover anime-tooltip" data-delay="150" data-tooltip_url="https://shikimori.one/animes/457-mushishi/tooltip" href="https://shikimori.one/animes/457-mushishi" title="Mushishi">
+																<span class="image-decor">
+																	<span class="image-cutter">
+																		<picture>
+																			<source srcset="https://shikimori.one/uploads/poster/animes/457/preview-d37409286b3c66468dd542dbb71a6522.webp, https://shikimori.one/uploads/poster/animes/457/preview_2x-8abb4dd735ce642c7947bbf1fbd97889.webp 2x" type="image/webp" />
+																			<img alt="Мастер муси" src="https://shikimori.one/uploads/poster/animes/457/preview_alt-f45566db108521a55c5e5ca0dd08dabf.jpeg" srcset="https://shikimori.one/uploads/poster/animes/457/preview_alt_2x-d9bb3e5d78beab4157cb448e96b4ec4b.jpeg 2x" />
+																		</picture>
+																	</span>
+																</span>
+																<span class="title two_lined" itemprop="name">
+																	<span class='name-en'>Mushishi</span>
+																	<span class='name-ru'>Мастер муси</span>
+																</span>
+																<span class="misc"></span>
+															</a>
+															<meta content="https://shikimori.one/system/animes/original/457.jpg" itemprop="image" />
+															<meta content="https://shikimori.one/system/animes/x48/457.jpg" itemprop="thumbnailUrl" />
+															<meta content="2005-10-23" itemprop="dateCreated" />
+														</article>
+														<article class="c-column b-catalog_entry c-anime entry-2966 " data-track_user_rate="catalog_entry:anime:2966" id="2966" itemscope="" itemtype="http://schema.org/Movie">
+															<a class="cover anime-tooltip" data-delay="150" data-tooltip_url="https://shikimori.one/animes/2966-ookami-to-koushinryou/tooltip" href="https://shikimori.one/animes/2966-ookami-to-koushinryou" title="Ookami to Koushinryou">
+																<span class="image-decor">
+																	<span class="image-cutter">
+																		<picture>
+																			<source srcset="https://shikimori.one/uploads/poster/animes/2966/preview-611642b1629f16988e83f02885df4318.webp, https://shikimori.one/uploads/poster/animes/2966/preview_2x-73cc8cc1317bc8173364119b9315975c.webp 2x" type="image/webp" />
+																			<img alt="Волчица и пряности" src="https://shikimori.one/uploads/poster/animes/2966/preview_alt-db66943488e5449fbd0a5a6d3fbe5e42.jpeg" srcset="https://shikimori.one/uploads/poster/animes/2966/preview_alt_2x-2bdee61d9947c34719a792c915169d0f.jpeg 2x" />
+																		</picture>
+																	</span>
+																</span>
+																<span class="title two_lined" itemprop="name">
+																	<span class='name-en'>Ookami to Koushinryou</span>
+																	<span class='name-ru'>Волчица и пряности</span>
+																</span>
+																<span class="misc"></span>
+															</a>
+															<meta content="https://shikimori.one/system/animes/original/2966.jpg" itemprop="image" />
+															<meta content="https://shikimori.one/system/animes/x48/2966.jpg" itemprop="thumbnailUrl" />
+															<meta content="2008-01-09" itemprop="dateCreated" />
+														</article>
+													</div>
+												</div>
+												-->
+								<!--
+											<div class="block">
+												<div class="b-reviews_navigation" data-fetch_url_base="https://shikimori.one/animes/{{ID}}/reviews" data-initial_opinion="" data-initial_page="1" data-is_preview="">
+													<div class="navigation-container">
+														<a class="navigation-node navigation-node-all is-active" data-opinion="" href="https://shikimori.one/animes/{{ID}}/reviews">
+															<div class="label">
+																<span>Все отзывы</span>
+															</div>
+															<div class="count">212</div>
+														</a>
+														<a class="navigation-node navigation-node-positive" data-ellispsis-allowed="" data-opinion="positive" href="https://shikimori.one/animes/{{ID}}/reviews/positive">
+															<div class="label">
+																<span>Положительные</span>
+															</div>
+															<div class="count">133</div>
+														</a>
+														<a class="navigation-node navigation-node-neutral" data-opinion="neutral" href="https://shikimori.one/animes/{{ID}}/reviews/neutral">
+															<div class="label">
+																<span>Нейтральные</span>
+															</div>
+															<div class="count">47</div>
+														</a>
+														<a class="navigation-node navigation-node-negative" data-ellispsis-allowed="" data-opinion="negative" href="https://shikimori.one/animes/{{ID}}/reviews/negative">
+															<div class="label">
+																<span>Отрицательные</span>
+															</div>
+															<div class="count">32</div>
+														</a>
+													</div>
+													<div class="content-container">
+														<div class="content-node is-active b-ajax" data-opinion=""></div>
+														<div class="content-node b-ajax" data-opinion="positive"></div>
+														<div class="content-node b-ajax" data-opinion="neutral"></div>
+														<div class="content-node b-ajax" data-opinion="negative"></div>
+													</div>
+												</div>
+											</div>
+											-->
+								<div class="subheadline">
+									<a href="https://shikimori.one/forum/animanga/anime-{{ID}}/{{TOPIC_ID}}-obsuzhdenie-anime" title="Все комментарии">
+										Комментарии
+										<div class="count">{{COMMENTS_COUNT}}</div>
+									</a>
+								</div>
+							</div>
+							<!-- СЮДА -->
+							<div class="to-process" data-dynamic="topic" data-faye="[&quot;/topic-{{TOPIC_ID}}&quot;]">
+								<div class="b-comments">
+									<div class="comments-hider">Скрыть {{COMMENTS_COUNT}} комментариев</div>
+									<div class="comments-expander">Показать {{COMMENTS_COUNT}} комментариев</div>
+									<div class="comments-collapser hidden">свернуть</div>
+									<div class="comments-loader to-process" data-clickloaded-url-template="https://shikimori.one/comments/fetch/{{COMMENTS_ANCHOR}}/Topic/{{TOPIC_ID}}/SKIP/10" data-count="37726" data-dynamic="clickloaded" data-limit="10" data-skip="3">Загрузить ещё 10 из {{COMMENTS_COUNT}} комментариев</div>
+									<!--
+									<div class="b-comment" data-comment-id="{{COMMENT_ID}}">
+										<header>
+											<a class="user-link" href="https://shikimori.one/{{USER_NICK}}">
+												<img src="{{USER_AVATAR}}" alt="{{USER_NICK}}" />
+												{{USER_NICK}}
+											</a>
+											<time datetime="{{CREATED_AT}}">{{CREATED_AT_DISPLAY}}</time>
+										</header>
+										<div class="body">
+											{{COMMENT_BODY}}
+										</div>
+									</div>
+									-->
+								</div>
+							</div>
+						</div>
+						<aside class="l-menu">
+							<div class="b-animes-menu">
+								{{USER_RATINGS}}
+								{{USER_STATUSES}}
+								<div class="block">
+									<div class="subheadline m5">У друзей</div>
+									<!--
+									<div class="b-menu-line friend-rate">
+										<div class="status">Запланировано</div>
+										<div class="b-user16">
+											<a href="https://shikimori.one/friend_id" title="friend_name">
+												<img alt="friend_name" src="pfp_link" srcset="pfp_link 2x" />
+												<span>friend_name</span>
+											</a>
+										</div>
+									</div>
+									-->
+								</div>
+								<!---->
+								<div class="b-favoured">
+									<div class="subheadline">
+										<div class="linkeable" data-href="https://shikimori.one/animes/{{ID}}/favoured">
+											В избранном
+											<div class="count">---</div>
+										</div>
+									</div>
+									<div class="cc">
+										<div class="b-user c-column avatar">
+											<a class="avatar" href="https://shikimori.one/forum/site/610897-shikimori-404-fix" style="display: block; padding: 10px; text-align: center; color: #0066cc; text-decoration: none; overflow-wrap: anywhere;">
+											Если знаете как вернуть данную информацию напишите мне в топик скрипта на сайте
+											</a>
+										</div>
+									</div>
+								</div>
+								<!-- </div> -->
+								<!---->
+								<div class="block">
+									<!---->
+									<div class="subheadline">
+										<div class="linkeable" data-href="https://shikimori.one/animes/{{ID}}/clubs">
+											В клубах
+											<div class="count">---</div>
+										</div>
+									</div>
+									<div class="b-clubs one-line">
+										<a href="https://shikimori.one/forum/site/610897-shikimori-404-fix" style="display: block; padding: 10px; text-align: center; color: #0066cc; text-decoration: none; overflow-wrap: anywhere;">
+										Если знаете как вернуть данную информацию напишите мне в топик скрипта на сайте
+										</a>
+									</div>
+									<!---->
+								</div>
+								<div class="block">
+									<!---->
+									<div class="subheadline m5">
+										<div class="linkeable" data-href="https://shikimori.one/animes/{{ID}}/collections">
+											В коллекциях
+											<div class="count">---</div>
+										</div>
+									</div>
+									<div class="block">
+										<div class="b-menu-line">
+											<span>
+												<a class="b-link" href="https://shikimori.one/forum/site/610897-shikimori-404-fix" style="display: block; padding: 10px; text-align: center; color: #0066cc; text-decoration: none; overflow-wrap: anywhere;">
+												Если знаете как вернуть данную информацию напишите мне в топик скрипта на сайте
+												</a>
+											</span>
+										</div>
+									</div>
+									<!---->
+								</div>
+								{{NEWS}}
+								<div class="block">
+									<div class="subheadline m8">На других сайтах</div>
+									{{EXTERNAL_LINKS}}
+								</div>
+								<div class="block">
+									<div class="subheadline m5">Субтитры</div>
+									{{SUBTITLES}}
+								</div>
+								<div class="block">
+									<div class="subheadline m5">Озвучка</div>
+									{{DUBBING}}
+								</div>
+							</div>
+						</aside>
+					</div>
+				</div>
+			</div>
+			<footer class="l-footer">
+				<div class="copyright">
+					&copy; shikimori.one&nbsp;
+					<span class="date">2011-2025</span>
+				</div>
+				<div class="links">
+					<a class="terms" href="https://shikimori.one/terms" tabindex="-1" title="Соглашение">Соглашение</a>
+					<a class="for-right-holders" href="https://shikimori.one/for_right_holders" tabindex="-1" title="Для правообладателей">Для правообладателей</a>
+					<a class="sitemap" href="https://shikimori.one/sitemap" tabindex="-1" title="Карта сайта">Карта сайта</a>
+				</div>
+			</footer>
+		</section>
+		<div class="b-shade"></div>
+		<div class="b-to-top">
+			<div class="slide"></div>
+			<div class="arrow"></div>
+		</div>
+		<div class="b-feedback">
+			<div class="hover-activator"></div>
+			<span class="marker-positioner" data-action="https://shikimori.one/feedback" data-remote="true" data-type="html">
+				<div class="marker-text" data-text="Сообщить об ошибке"></div>
+			</span>
+		</div>
+		<!--
+		<script>
+			ТУТ БЫЛ СКРИПТ
+		</script>
+		-->
+	</body>
+</html>
