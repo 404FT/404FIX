@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Shikimori 404 Fix
 // @namespace    http://tampermonkey.net/
-// @version      1.0.5
+// @version      1.1
 // @description  Fetch anime info and render 404 pages.
 // @author       404FT
 // @updateURL    https://raw.githubusercontent.com/404FT/404FIX/refs/heads/main/404FIX.js
@@ -78,7 +78,79 @@
             return null;
         }
     };
+    
+    /**
+     * @description Получает ID стиля пользователя, а затем сам CSS.
+     * @param {number} userId - ID текущего пользователя.
+     * @returns {Promise<string|null>} Скомпилированный CSS или null в случае ошибки/отсутствия.
+     */
+    const getUserStyle = async (userId) => {
+        if (!userId) return null;
 
+        try {
+            log(`🎨 Запрашиваю данные пользователя ${userId} для получения ID стиля...`);
+            const userData = await apiRequest(`/users/${userId}`);
+            const styleId = userData?.style_id;
+
+            if (styleId) {
+                log(`🎨 ID стиля найден: ${styleId}. Запрашиваю CSS...`);
+                const styleData = await apiRequest(`/styles/${styleId}`);
+                const compiledCss = styleData?.compiled_css;
+
+                if (compiledCss) {
+                    log(`🎨 Пользовательский CSS успешно получен.`);
+                    return compiledCss;
+                } else {
+                    log(`🎨 Стиль ${styleId} не содержит скомпилированного CSS.`);
+                    return null;
+                }
+            } else {
+                log(`🎨 У пользователя ${userId} не установлен кастомный стиль.`);
+                return null;
+            }
+        } catch (err) {
+            error('❌ Ошибка при получении пользовательского стиля:', err.message);
+            return null; // Возвращаем null, чтобы не прерывать выполнение скрипта
+        }
+    };
+    
+    /**
+     * @description Загружает "донорскую" страницу, чтобы извлечь из неё свежий CSRF-токен.
+     * @returns {Promise<string|null>} CSRF-токен или null в случае ошибки.
+     */
+    const getCsrfToken = async () => {
+        try {
+            log('🔄 Запрашиваю страницу-донор для CSRF-токена...');
+            /**
+             * Для тестов на скорость загрузки
+             * https://shikimori.one/animes/1-cowboy-bebop
+             * https://shikimori.one/animes/62616-sheng-dan-chuanqi-zhu-gong-de-shaizi
+             */
+            const url = 'https://shikimori.one/animes/62616-sheng-dan-chuanqi-zhu-gong-de-shaizi'; // Любая живая страница
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`[404FIX] Статус ответа: ${response.status}`);
+            }
+            const pageHtml = await response.text();
+
+            // Используем DOMParser, чтобы безопасно найти элемент, не вставляя его в DOM
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(pageHtml, 'text/html');
+            const tokenElement = doc.querySelector('meta[name="csrf-token"]');
+
+            if (tokenElement) {
+                const token = tokenElement.getAttribute('content');
+                log('🔄 CSRF-токен успешно извлечён.');
+                return token;
+            } else {
+                throw new Error('Мета-тег csrf-token не найден на странице-доноре.');
+            }
+        } catch (err) {
+            error('❌ Ошибка при получении CSRF-токена:', err.message);
+            return null; // Важно вернуть null, чтобы не сломать остальной скрипт
+        }
+    };
+    
     const fetchComments = async (topicId, maxComments = 50) => {
         if (!topicId) return [];
         let allComments = [], anchor = null, page = 1, limit = 3, fetched = 0;
@@ -145,232 +217,242 @@
     };
 
     // --- Модуль отрисовки ---
+    
     const renderTemplate = (html, data) => {
-        // Замены основных плейсхолдеров
-        html = html.replaceAll('{{ID}}', data.INFO.ID || '');
-        html = html.replaceAll('{{RU_NAME}}', data.INFO.RU_NAME || 'N/A');
-        html = html.replaceAll('{{EN_NAME}}', data.INFO.EN_NAME || 'N/A');
-        html = html.replaceAll('{{TYPE}}', data.INFO.TYPE || '?');
-        html = html.replaceAll('{{STATUS}}', data.INFO.STATUS || 'N/A');
-        html = html.replaceAll('{{SCORE}}', data.INFO.SCORE || 'N/A');
-        html = html.replaceAll('{{EPISODES}}', data.INFO.EPISODES || '?');
-        html = html.replaceAll('{{DURATION}}', data.INFO.DURATION || '? мин.');
-        html = html.replaceAll('{{SOURCE}}', data.INFO.SOURCE || 'Отсутствует');
-        html = html.replaceAll('{{POSTER}}', data.POSTER || '');
-        html = html.replaceAll('{{DESCRIPTION}}', data.INFO.DESCRIPTION || 'Описание отсутствует');
-        html = html.replaceAll('{{MYANIMELIST_ID}}', data.INFO.MYANIMELIST_ID || '');
-        html = html.replaceAll('{{COMMENTS_COUNT}}', (Array.isArray(data.COMMENTS) ? data.COMMENTS.length : 0));
-        const commentsAnchor = (Array.isArray(data.COMMENTS) && data.COMMENTS.length > 3) ? data.COMMENTS[3].id : 0;
-        html = html.replaceAll('{{COMMENTS_ANCHOR}}', commentsAnchor);
-        html = html.replaceAll('{{TOPIC_ID}}', data.INFO.TOPIC_ID || '');
-
-        if (data.USER) {
-            html = html.replaceAll('{{USER_ID}}', data.USER.USER_ID);
-            html = html.replaceAll('{{USER_NICK}}', data.USER.USER_NICK);
-            html = html.replaceAll('{{USER_URL}}', data.USER.USER_URL);
-            html = html.replaceAll('{{USER_AVATAR}}', data.USER.USER_AVATAR);
-            html = html.replaceAll('{{USER_AVATAR_X16}}', data.USER.USER_AVATAR_X16);
-            html = html.replaceAll('{{USER_AVATAR_X32}}', data.USER.USER_AVATAR_X32);
-            html = html.replaceAll('{{USER_AVATAR_X48}}', data.USER.USER_AVATAR_X48);
-            html = html.replaceAll('{{USER_AVATAR_X64}}', data.USER.USER_AVATAR_X64);
-            html = html.replaceAll('{{USER_AVATAR_X80}}', data.USER.USER_AVATAR_X80);
-            html = html.replaceAll('{{USER_AVATAR_X148}}', data.USER.USER_AVATAR_X148);
-            html = html.replaceAll('{{USER_AVATAR_X160}}', data.USER.USER_AVATAR_X160);
-        }
-
-        function getRatingTooltip(rating) {
-          if (!rating) return "";
-          switch (rating) {
-            case "g":
-              return "G - Для всех возрастов";
-            case "pg":
-              return "PG - Родителям рекомендуется просмотреть перед детьми";
-            case "pg_13":
-              return "PG-13 - Детям до 13 лет просмотр не желателен";
-            case "r":
-              return "R - Лицам до 17 лет обязательно присутствие взрослого";
-            case "r+":
-              return "R+ - Лицам до 17 лет просмотр запрещён";
-            case "rx":
-              return "Хентай - смотреть только с родителями";
-            default:
-              return rating;
-          }
-        }
-        html = html.replaceAll('{{RATING}}', data.INFO.RATING || '');
-
-        function getRatingNotice(score) {
-          if (!score) return "Нет оценки";
-          if (score >= 10) return "Эпик вин!";
-          if (score >= 9) return "Великолепно";
-          if (score >= 8) return "Отлично";
-          if (score >= 7) return "Хорошо";
-          if (score >= 6) return "Нормально";
-          if (score >= 5) return "Более-менее";
-          if (score >= 4) return "Плохо";
-          if (score >= 3) return "Очень плохо";
-          if (score >= 2) return "Ужасно";
-          if (score >= 1) return "Хуже некуда";
-          return "Нет оценки";
-        }
-        const score = parseFloat(data.INFO.SCORE || 0);
-        const scoreRound = Math.round(score);
-        html = html.replaceAll('{{SCORE}}', score.toFixed(2));
-        html = html.replaceAll('{{SCORE_ROUND}}', scoreRound);
-        html = html.replaceAll('{{RATING_NOTICE}}', getRatingNotice(score));
-        html = html.replaceAll('{{RATING_TOOLTIP}}', getRatingTooltip(data.INFO.RATING));
-
-        
-        html = html.replaceAll(
-          "{{STUDIOS}}",
-          Array.isArray(data.INFO.STUDIOS)
-            ? data.INFO.STUDIOS.map(
-                (studio) =>
-                  `<a href="https://shikimori.one/animes/studio/${
-                    studio.id
-                  }-${encodeURIComponent(studio.name)}" title="Аниме студии ${
-                    studio.name
-                  }"><img alt="Аниме студии ${
-                    studio.name
-                  }" class="studio-logo" src="${studio.image || ""}" /></a>`
-              ).join("\n")
-            : ""
-        );
-        
-        function renderGenres(genres) {
-          if (!Array.isArray(genres) || genres.length === 0) return "";
-          return (
-            `<div class='key'>Жанры:</div><div class='value'>` +
-            genres
-              .map((g) => {
-                const en = g.name || "";
-                const ru = g.russian || en;
-                const id = g.id || "";
-                const href = `https://shikimori.one/animes/genre/${id}-${en}`;
-                return `<a class="b-tag bubbled" href="${href}"><span class='genre-en'>${en}</span><span class='genre-ru'>${ru}</span></a>`;
-              })
-              .join("\n") +
-            `</div>`
+      // Вставка пользовательского CSS, если он есть
+      if (data.USER_CSS) {
+          html = html.replace(
+              '<style id="custom_css" type="text/css"></style>',
+              `<style id="custom_css" type="text/css">${data.USER_CSS}</style>`
           );
+      }
+      
+      // Замены основных плейсхолдеров
+      html = html.replaceAll('{{ID}}', data.INFO.ID || '');
+      html = html.replaceAll('{{RU_NAME}}', data.INFO.RU_NAME || 'N/A');
+      html = html.replaceAll('{{EN_NAME}}', data.INFO.EN_NAME || 'N/A');
+      html = html.replaceAll('{{TYPE}}', data.INFO.TYPE || '?');
+      html = html.replaceAll('{{STATUS}}', data.INFO.STATUS || 'N/A');
+      html = html.replaceAll('{{SCORE}}', data.INFO.SCORE || 'N/A');
+      html = html.replaceAll('{{EPISODES}}', data.INFO.EPISODES || '?');
+      html = html.replaceAll('{{DURATION}}', data.INFO.DURATION || '? мин.');
+      html = html.replaceAll('{{SOURCE}}', data.INFO.SOURCE || 'Отсутствует');
+      html = html.replaceAll('{{POSTER}}', data.POSTER || '');
+      html = html.replaceAll('{{DESCRIPTION}}', data.INFO.DESCRIPTION || 'Описание отсутствует');
+      html = html.replaceAll('{{MYANIMELIST_ID}}', data.INFO.MYANIMELIST_ID || '');
+      html = html.replaceAll('{{COMMENTS_COUNT}}', (Array.isArray(data.COMMENTS) ? data.COMMENTS.length : 0));
+      const commentsAnchor = (Array.isArray(data.COMMENTS) && data.COMMENTS.length > 0) ? data.COMMENTS[0].id : 0;
+      html = html.replaceAll('{{COMMENTS_ANCHOR}}', commentsAnchor);
+      html = html.replaceAll('{{TOPIC_ID}}', data.INFO.TOPIC_ID || '');
+      html = html.replaceAll('{{AUTHENTICITY_TOKEN}}', data.CSRF_TOKEN || '');
+      
+      if (data.USER) {
+          html = html.replaceAll('{{USER_ID}}', data.USER.USER_ID);
+          html = html.replaceAll('{{USER_NICK}}', data.USER.USER_NICK);
+          html = html.replaceAll('{{USER_URL}}', data.USER.USER_URL);
+          html = html.replaceAll('{{USER_AVATAR}}', data.USER.USER_AVATAR);
+          html = html.replaceAll('{{USER_AVATAR_X16}}', data.USER.USER_AVATAR_X16);
+          html = html.replaceAll('{{USER_AVATAR_X32}}', data.USER.USER_AVATAR_X32);
+          html = html.replaceAll('{{USER_AVATAR_X48}}', data.USER.USER_AVATAR_X48);
+          html = html.replaceAll('{{USER_AVATAR_X64}}', data.USER.USER_AVATAR_X64);
+          html = html.replaceAll('{{USER_AVATAR_X80}}', data.USER.USER_AVATAR_X80);
+          html = html.replaceAll('{{USER_AVATAR_X148}}', data.USER.USER_AVATAR_X148);
+          html = html.replaceAll('{{USER_AVATAR_X160}}', data.USER.USER_AVATAR_X160);
+      }
+
+      function getRatingTooltip(rating) {
+        if (!rating) return "";
+        switch (rating) {
+          case "g":
+            return "G - Для всех возрастов";
+          case "pg":
+            return "PG - Родителям рекомендуется просмотреть перед детьми";
+          case "pg_13":
+            return "PG-13 - Детям до 13 лет просмотр не желателен";
+          case "r":
+            return "R - Лицам до 17 лет обязательно присутствие взрослого";
+          case "r+":
+            return "R+ - Лицам до 17 лет просмотр запрещён";
+          case "rx":
+            return "Хентай - смотреть только с родителями";
+          default:
+            return rating;
         }
-        html = html.replaceAll('{{GENRES}}', renderGenres(data.INFO.GENRES));
-        
-        function renderUserRatingsHTML(userScores) {
-          if (!Array.isArray(userScores) || userScores.length === 0) return "";
-          const statsArray = userScores.map((item) => [
-            String(item.score),
-            item.count,
-          ]);
-          const dataStats = JSON.stringify(statsArray).replace(/"/g, "&quot;");
-          return `<div class="block"><div class="subheadline">Оценки людей</div><div data-bar="horizontal" data-stats="${dataStats}" id="rates_scores_stats"></div></div>`;
-        }
-        html = html.replaceAll('{{USER_RATINGS}}', renderUserRatingsHTML(data.RATINGS.USER_SCORES));
-        
-        function renderUserStatusesHTML(userStatuses) {
-          if (!Array.isArray(userStatuses) || userStatuses.length === 0)
-            return "";
-          const statusNames = {
-            planned: "Запланировано",
-            watching: "Смотрю",
-            completed: "Просмотрено",
-            dropped: "Брошено",
-            on_hold: "Отложено",
-          };
-          const statusMap = {
-            Запланировано: "planned",
-            Смотрю: "watching",
-            Просмотрено: "completed",
-            Брошено: "dropped",
-            Отложено: "on_hold",
-          };
-          const statsArray = userStatuses.map((item) => [
-            statusMap[item.status] || item.status.toLowerCase(),
-            item.count,
-          ]);
-          const total = userStatuses.reduce((sum, item) => sum + item.count, 0);
-          return `<div class="block"><div class="subheadline">В списках у людей</div><div data-bar="horizontal" data-entry_type="anime" data-stats="${JSON.stringify(
-            statsArray
-          ).replace(
-            /"/g,
-            "&quot;"
-          )}" id="rates_statuses_stats"></div><div class="total-rates">В списках у ${total} человек</div></div>`;
-        }
-        html = html.replaceAll('{{USER_STATUSES}}', renderUserStatusesHTML(data.RATINGS.USER_STATUS_STATS));
-        
-        function renderDubbing(dubbing) {
-          if (!Array.isArray(dubbing) || dubbing.length === 0) return "";
-          const visible = dubbing
-            .slice(0, 5)
-            .map(
-              (d) =>
-                `<div class="b-menu-line" title="${d.name}">${d.name}</div>`
-            )
-            .join("\n");
-          const hidden = dubbing
-            .slice(5)
-            .map(
-              (d) =>
-                `<div class="b-menu-line" title="${d.name}">${d.name}</div>`
-            )
-            .join("\n");
-          if (!hidden) return visible;
-          return `${visible}<div class="b-show_more unprocessed">+ показать всех</div><div class="b-show_more-more" style="display:none;">${hidden}<div class="hide-more">&mdash; спрятать</div></div>`;
-        }
-        html = html.replaceAll('{{DUBBING}}', renderDubbing(data.VIDEOS.DUBBING));
-        
-        function renderSubtitles(subtitles) {
-          if (!Array.isArray(subtitles) || subtitles.length === 0) return "";
-          return subtitles
-            .map(
-              (s) =>
-                `<div class="b-menu-line" title="${s.name}">${s.name}</div>`
-            )
-            .join("\n");
-        }
-        html = html.replaceAll('{{SUBTITLES}}', renderSubtitles(data.VIDEOS.SUBTITLES));
-        
-        function renderNewsHTML(newsArray) {
-          if (!Array.isArray(newsArray) || newsArray.length === 0) return "";
-          return `<div class="b-menu-links menu-topics-block history m30"><div class="subheadline m5">Новости</div><div class="block">${newsArray
-            .map(
-              (n) =>
-                `<a class="b-menu-line entry b-link" href="${n.link}" style="display:block; margin:4px 0;"><span class="name">${n.topic_title}</span></a>`
-            )
-            .join("\n")}</div></div>`;
-        }
-        html = html.replaceAll('{{NEWS}}', renderNewsHTML(data.NEWS));
-        
-        html = html.replaceAll('{{COMMENTS}}', data.COMMENTS?.map(c => `${c.user || 'Anon'}: ${c.text_preview}`).join('\n') || '');
-        
-        function renderExternalLinks(links) {
-          if (!Array.isArray(links) || links.length === 0) return "";
-          return links
-            .map((l) => {
-              const url = l.url || "#";
-              let siteName, siteClass;
-              if (l.site) {
-                siteName = l.site;
-                siteClass = l.site.toLowerCase().replace(/\s/g, "_");
-              } else if (url !== "#" && url.startsWith("http")) {
-                try {
-                  const hostname = new URL(url).hostname;
-                  siteName = hostname;
-                  siteClass = hostname.toLowerCase().replace(/\s/g, "_");
-                } catch (e) {
-                  siteName = "Unknown";
-                  siteClass = "unknown";
-                }
-              } else {
+      }
+      html = html.replaceAll('{{RATING}}', data.INFO.RATING || '');
+
+      function getRatingNotice(score) {
+        if (!score) return "Нет оценки";
+        if (score >= 10) return "Эпик вин!";
+        if (score >= 9) return "Великолепно";
+        if (score >= 8) return "Отлично";
+        if (score >= 7) return "Хорошо";
+        if (score >= 6) return "Нормально";
+        if (score >= 5) return "Более-менее";
+        if (score >= 4) return "Плохо";
+        if (score >= 3) return "Очень плохо";
+        if (score >= 2) return "Ужасно";
+        if (score >= 1) return "Хуже некуда";
+        return "Нет оценки";
+      }
+      const score = parseFloat(data.INFO.SCORE || 0);
+      const scoreRound = Math.round(score);
+      html = html.replaceAll('{{SCORE}}', score.toFixed(2));
+      html = html.replaceAll('{{SCORE_ROUND}}', scoreRound);
+      html = html.replaceAll('{{RATING_NOTICE}}', getRatingNotice(score));
+      html = html.replaceAll('{{RATING_TOOLTIP}}', getRatingTooltip(data.INFO.RATING));
+
+      
+      html = html.replaceAll(
+        "{{STUDIOS}}",
+        Array.isArray(data.INFO.STUDIOS)
+          ? data.INFO.STUDIOS.map(
+              (studio) =>
+                `<a href="https://shikimori.one/animes/studio/${
+                  studio.id
+                }-${encodeURIComponent(studio.name)}" title="Аниме студии ${
+                  studio.name
+                }"><img alt="Аниме студии ${
+                  studio.name
+                }" class="studio-logo" src="${studio.image || ""}" /></a>`
+            ).join("\n")
+          : ""
+      );
+      
+      function renderGenres(genres) {
+        if (!Array.isArray(genres) || genres.length === 0) return "";
+        return (
+          `<div class='key'>Жанры:</div><div class='value'>` +
+          genres
+            .map((g) => {
+              const en = g.name || "";
+              const ru = g.russian || en;
+              const id = g.id || "";
+              const href = `https://shikimori.one/animes/genre/${id}-${en}`;
+              return `<a class="b-tag bubbled" href="${href}"><span class='genre-en'>${en}</span><span class='genre-ru'>${ru}</span></a>`;
+            })
+            .join("\n") +
+          `</div>`
+        );
+      }
+      html = html.replaceAll('{{GENRES}}', renderGenres(data.INFO.GENRES));
+      
+      function renderUserRatingsHTML(userScores) {
+        if (!Array.isArray(userScores) || userScores.length === 0) return "";
+        const statsArray = userScores.map((item) => [
+          String(item.score),
+          item.count,
+        ]);
+        const dataStats = JSON.stringify(statsArray).replace(/"/g, "&quot;");
+        return `<div class="block"><div class="subheadline">Оценки людей</div><div data-bar="horizontal" data-stats="${dataStats}" id="rates_scores_stats"></div></div>`;
+      }
+      html = html.replaceAll('{{USER_RATINGS}}', renderUserRatingsHTML(data.RATINGS.USER_SCORES));
+      
+      function renderUserStatusesHTML(userStatuses) {
+        if (!Array.isArray(userStatuses) || userStatuses.length === 0)
+          return "";
+        const statusNames = {
+          planned: "Запланировано",
+          watching: "Смотрю",
+          completed: "Просмотрено",
+          dropped: "Брошено",
+          on_hold: "Отложено",
+        };
+        const statusMap = {
+          Запланировано: "planned",
+          Смотрю: "watching",
+          Просмотрено: "completed",
+          Брошено: "dropped",
+          Отложено: "on_hold",
+        };
+        const statsArray = userStatuses.map((item) => [
+          statusMap[item.status] || item.status.toLowerCase(),
+          item.count,
+        ]);
+        const total = userStatuses.reduce((sum, item) => sum + item.count, 0);
+        return `<div class="block"><div class="subheadline">В списках у людей</div><div data-bar="horizontal" data-entry_type="anime" data-stats="${JSON.stringify(
+          statsArray
+        ).replace(
+          /"/g,
+          "&quot;"
+        )}" id="rates_statuses_stats"></div><div class="total-rates">В списках у ${total} человек</div></div>`;
+      }
+      html = html.replaceAll('{{USER_STATUSES}}', renderUserStatusesHTML(data.RATINGS.USER_STATUS_STATS));
+      
+      function renderDubbing(dubbing) {
+        if (!Array.isArray(dubbing) || dubbing.length === 0) return "";
+        const visible = dubbing
+          .slice(0, 5)
+          .map(
+            (d) =>
+              `<div class="b-menu-line" title="${d.name}">${d.name}</div>`
+          )
+          .join("\n");
+        const hidden = dubbing
+          .slice(5)
+          .map(
+            (d) =>
+              `<div class="b-menu-line" title="${d.name}">${d.name}</div>`
+          )
+          .join("\n");
+        if (!hidden) return visible;
+        return `${visible}<div class="b-show_more unprocessed">+ показать всех</div><div class="b-show_more-more" style="display:none;">${hidden}<div class="hide-more">&mdash; спрятать</div></div>`;
+      }
+      html = html.replaceAll('{{DUBBING}}', renderDubbing(data.VIDEOS.DUBBING));
+      
+      function renderSubtitles(subtitles) {
+        if (!Array.isArray(subtitles) || subtitles.length === 0) return "";
+        return subtitles
+          .map(
+            (s) =>
+              `<div class="b-menu-line" title="${s.name}">${s.name}</div>`
+          )
+          .join("\n");
+      }
+      html = html.replaceAll('{{SUBTITLES}}', renderSubtitles(data.VIDEOS.SUBTITLES));
+      
+      function renderNewsHTML(newsArray) {
+        if (!Array.isArray(newsArray) || newsArray.length === 0) return "";
+        return `<div class="b-menu-links menu-topics-block history m30"><div class="subheadline m5">Новости</div><div class="block">${newsArray
+          .map(
+            (n) =>
+              `<a class="b-menu-line entry b-link" href="${n.link}" style="display:block; margin:4px 0;"><span class="name">${n.topic_title}</span></a>`
+          )
+          .join("\n")}</div></div>`;
+      }
+      html = html.replaceAll('{{NEWS}}', renderNewsHTML(data.NEWS));
+      
+      html = html.replaceAll('{{COMMENTS}}', data.COMMENTS?.map(c => `${c.user || 'Anon'}: ${c.text_preview}`).join('\n') || '');
+      
+      function renderExternalLinks(links) {
+        if (!Array.isArray(links) || links.length === 0) return "";
+        return links
+          .map((l) => {
+            const url = l.url || "#";
+            let siteName, siteClass;
+            if (l.site) {
+              siteName = l.site;
+              siteClass = l.site.toLowerCase().replace(/\s/g, "_");
+            } else if (url !== "#" && url.startsWith("http")) {
+              try {
+                const hostname = new URL(url).hostname;
+                siteName = hostname;
+                siteClass = hostname.toLowerCase().replace(/\s/g, "_");
+              } catch (e) {
                 siteName = "Unknown";
                 siteClass = "unknown";
               }
-              return `<div class="b-external_link ${siteClass} b-menu-line"><div class="linkeable b-link" data-href="${url}">${siteName}</div></div>`;
-            })
-            .join("\n");
-        }
-        html = html.replaceAll('{{EXTERNAL_LINKS}}', renderExternalLinks(data.EXTERNAL_LINKS));
+            } else {
+              siteName = "Unknown";
+              siteClass = "unknown";
+            }
+            return `<div class="b-external_link ${siteClass} b-menu-line"><div class="linkeable b-link" data-href="${url}">${siteName}</div></div>`;
+          })
+          .join("\n");
+      }
+      html = html.replaceAll('{{EXTERNAL_LINKS}}', renderExternalLinks(data.EXTERNAL_LINKS));
 
-        return html;
+      return html;
     };
 
     // --- Основная логика ---
@@ -378,12 +460,25 @@
         const startTime = performance.now();
         try {
             const templateUrl = 'https://raw.githubusercontent.com/404FT/404FIX/refs/heads/main/404FIX.html';
-            const [pageData, currentUser, htmlText] = await Promise.all([
+            
+            const [pageData, currentUser, htmlText, csrfToken] = await Promise.all([
                 getAnimePageData(animeId),
                 getCurrentUser(),
-                fetch(templateUrl).then(res => res.text())
+                fetch(templateUrl).then(res => res.text()),
+                getCsrfToken()
             ]);
-            if (currentUser) pageData.USER = currentUser;
+            
+            pageData.CSRF_TOKEN = csrfToken;
+            
+            // Если пользователь есть, добавляем его данные и ЗАПРАШИВАЕМ ЕГО СТИЛЬ
+            if (currentUser) {
+                pageData.USER = currentUser;
+                // Запрашиваем CSS и добавляем его в pageData
+                pageData.USER_CSS = await getUserStyle(currentUser.USER_ID);
+            } else {
+                pageData.USER_CSS = null;
+            }
+            
             const renderedHTML = renderTemplate(htmlText, pageData);
             
             /* В будущем эти 3 строки могут сломаться */
@@ -438,6 +533,5 @@
     };
 
     init();
-
 
 })();
