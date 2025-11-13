@@ -1,14 +1,13 @@
 // ==UserScript==
-// @name         Shikimori 404 Fix
+// @name         Shikimori 404 Fix - LOCAL
 // @namespace    http://tampermonkey.net/
-// @version      1.1
+// @version      1.1.1
 // @description  Fetch anime info and render 404 pages.
 // @author       404FT
 // @updateURL    https://raw.githubusercontent.com/404FT/404FIX/refs/heads/main/404FIX.js
 // @downloadURL  https://raw.githubusercontent.com/404FT/404FIX/refs/heads/main/404FIX.js
 // @match        https://shikimori.one/*
 // @grant        none
-// @license      MIT
 // ==/UserScript==
 
 (function() {
@@ -169,13 +168,24 @@
         }
         return allComments.slice(0, maxComments);
     };
-
+    
+    const getSimilarAnimes = async (id) => {
+        try {
+            const data = await apiRequest(`/animes/${id}/similar`);
+            return Array.isArray(data) ? data.slice(0, 12) : []; // лимит 12
+        } catch (err) {
+            log('Не удалось загрузить похожие аниме:', err.message);
+            return [];
+        }
+    };
+    
     const getAnimePageData = async (id) => {
         log(`📡 Запускаю параллельную загрузку данных для аниме ID: ${id}`);
-        const [animeResult, newsResult, externalLinksResult] = await Promise.allSettled([
+        const [animeResult, newsResult, externalLinksResult, similarResult] = await Promise.allSettled([
             apiRequest(`/animes/${id}`),
             apiRequest(`/topics?forum=news&linked_type=Anime&linked_id=${id}&type=Topics::NewsTopic&limit=30&order=comments_count&order_direction=desc`),
-            apiRequest(`/animes/${id}/external_links`)
+            apiRequest(`/animes/${id}/external_links`),
+            apiRequest(`/animes/${id}/similar`)
         ]);
 
         if (animeResult.status === 'rejected') {
@@ -189,6 +199,7 @@
             log('⚠️ Не удалось загрузить комментарии:', err.message);
             return [];
         });
+        const similarAnimes = similarResult.status === 'fulfilled' ? similarResult.value.slice(0, 12) : [];
 
         const animeData = {
             INFO: {
@@ -197,7 +208,9 @@
                 STATUS: anime.status || 'N/A', GENRES: anime.genres?.map(g => ({ id: g.id, russian: g.russian, name: g.name })) || [],
                 RATING: anime.rating || 'N/A', SCORE: anime.score || 'N/A', SOURCE: anime.source || 'N/A',
                 STUDIOS: anime.studios?.map(s => ({ id: s.id, name: s.name, image: s.image?.original ? `https://shikimori.one${s.image.original}` : '' })) || [],
-                DESCRIPTION: anime.description_html || 'N/A', MYANIMELIST_ID: anime.myanimelist_id || 'N/A', TOPIC_ID: topicId
+                DESCRIPTION: anime.description_html || 'N/A',
+                MYANIMELIST_ID: anime.myanimelist_id || 'N/A',
+                TOPIC_ID: topicId
             },
             POSTER: anime.image ? `https://shikimori.one${anime.image.original}` : 'N/A',
             RATINGS: {
@@ -210,12 +223,13 @@
             },
             COMMENTS: comments.map(c => ({ id: c.id, text_preview: c.body?.substring(0, 100) + '...', user_id: c.user_id, user: c.user?.nickname, created_at: c.created_at })),
             NEWS: newsResult.status === 'fulfilled' ? newsResult.value.map(t => ({ id: t.id, topic_title: t.topic_title, link: `https://shikimori.one/forum/news/${t.id}` })) : [],
-            EXTERNAL_LINKS: externalLinksResult.status === 'fulfilled' ? externalLinksResult.value.map(l => ({ url: l.url, site: l.site_name, lang: l.lang })) : []
+            EXTERNAL_LINKS: externalLinksResult.status === 'fulfilled' ? externalLinksResult.value.map(l => ({ url: l.url, site: l.site_name, lang: l.lang })) : [],
+            SIMILAR_ANIMES: similarAnimes
         };
         log(`✅ Все данные для аниме ID: ${id} успешно обработаны.`);
         return animeData;
     };
-
+    
     // --- Модуль отрисовки ---
     
     const renderTemplate = (html, data) => {
@@ -245,6 +259,12 @@
       html = html.replaceAll('{{COMMENTS_ANCHOR}}', commentsAnchor);
       html = html.replaceAll('{{TOPIC_ID}}', data.INFO.TOPIC_ID || '');
       html = html.replaceAll('{{AUTHENTICITY_TOKEN}}', data.CSRF_TOKEN || '');
+      // === Похожие аниме ===
+      if (data.SIMILAR_ANIMES && Array.isArray(data.SIMILAR_ANIMES)) {
+          html = html.replace('{{SIMILAR_ANIMES}}', renderSimilarAnimesBlock(data.SIMILAR_ANIMES));
+      } else {
+          html = html.replace('{{SIMILAR_ANIMES}}', '');
+      }
       
       if (data.USER) {
           html = html.replaceAll('{{USER_ID}}', data.USER.USER_ID);
@@ -259,7 +279,73 @@
           html = html.replaceAll('{{USER_AVATAR_X148}}', data.USER.USER_AVATAR_X148);
           html = html.replaceAll('{{USER_AVATAR_X160}}', data.USER.USER_AVATAR_X160);
       }
+      
+      function renderSimilarAnimes(animes) {
+          if (!Array.isArray(animes) || animes.length === 0) return '';
+          return animes.slice(0, 7).map(anime => {
+              const id = anime.id;
+              const kind = anime.kind === 'tv' ? 'anime' : (anime.kind || 'anime');
+              const url = `https://shikimori.one/animes/${id}`;
+              const nameEn = anime.name || '';
+              const nameRu = anime.russian || nameEn;
+              const airedOn = anime.aired_on?.split('-')?.[0] || '';
 
+              // ВЫБИРАЕМ ОПТИМАЛЬНОЕ ИЗОБРАЖЕНИЕ:
+              // x96 или preview - идеальны для превью. Original - слишком большой и медленный.
+              const imagePath = anime.image?.x96 || anime.image?.preview || anime.image?.original || '';
+              
+              if (!imagePath) {
+                  return ''; // Пропускаем аниме без изображения
+              }
+
+              const imageUrl = `https://shikimori.one${imagePath}`;
+
+              const imageHtml = `
+                  <picture style="display: block; width: 93px; height: 132px;">
+                      <source srcset="${imageUrl} 1x, ${imageUrl} 2x" type="image/jpeg">
+                      <img alt="${nameRu}"
+                          src="${imageUrl}"
+                          srcset="${imageUrl} 2x"
+                          style="width: 93px; height: 132px; object-fit: cover; display: block;">
+                  </picture>
+              `;
+
+              return `
+                <article class="c-column b-catalog_entry c-${kind} entry-${id}"
+                        data-track_user_rate="catalog_entry:${kind}:${id}"
+                        id="${id}"
+                        itemscope
+                        itemtype="http://schema.org/Movie"
+                        style="width: 93px; height: auto; float: left; margin: 5px; overflow: hidden;">
+                  <a class="cover bubbled"
+                    data-delay="150"
+                    data-tooltip_url="https://shikimori.one/animes/${id}/tooltip"
+                    href="${url}"
+                    style="display: block; width: 93px; text-decoration: none;">
+                    <span class="image-decor" style="display: block; width: 93px; height: 132px; overflow: hidden;">
+                      <span class="image-cutter" style="display: block; width: 93px; height: 132px;">
+                        ${imageHtml}
+                      </span>
+                    </span>
+                    <span class="title two_lined" itemprop="name" style="display: block; width: 93px; font-size: 12px; line-height: 1.2; margin-top: 5px; word-wrap: break-word;">
+                      <span class="name-en" style="display: block; font-weight: bold;">${nameEn}</span>
+                      <span class="name-ru" style="display: block; color: #666;">${nameRu}</span>
+                    </span>
+                    <span class="misc" style="display: block; width: 93px; font-size: 11px; color: #999;">${airedOn}</span>
+                  </a>
+                  <meta content="https://shikimori.one${anime.image?.original || ''}" itemprop="image">
+                  <meta content="https://shikimori.one${anime.image?.x48 || ''}" itemprop="thumbnailUrl">
+                  <meta content="${airedOn}" itemprop="dateCreated">
+                </article>`.trim();
+          }).join('');
+      }
+      
+      function renderSimilarAnimesBlock(animes) {
+          const limited = animes.slice(0, 7);
+          const entries = renderSimilarAnimes(limited);
+          return entries ? `<div class="cc cc-similar">${entries}</div>` : '';
+      }
+      
       function getRatingTooltip(rating) {
         if (!rating) return "";
         switch (rating) {
@@ -515,7 +601,7 @@
         log(`🔄 Ручное восстановление аниме ID: ${animeId}`);
         await renderPageForAnime(animeId);
         const script = document.createElement('script');
-        script.src = '/packs/js/application.js';
+        script.src = '/packs/javascripts/application.js';
         script.onload = () => log('📊 Графики инициализированы');
         script.onerror = () => error('Не удалось загрузить скрипт для графиков.');
         document.head.appendChild(script);
