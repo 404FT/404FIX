@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Shikimori 404 Fix - LOCAL
 // @namespace    http://tampermonkey.net/
-// @version      1.1.1
+// @version      1.2
 // @description  Fetch anime info and render 404 pages.
 // @author       404FT
 // @updateURL    https://raw.githubusercontent.com/404FT/404FIX/refs/heads/main/404FIX.js
@@ -12,13 +12,48 @@
 
 (function() {
     'use strict';
-
+    
     // --- Утилиты ---
+    
+    const CONFIG = {
+      DEBUG_MODE: true, // Включает/выключает подробные логи в консоли
+      RATE_LIMIT_MS: 200, // Интервал между запросами к API (1000ms / 5 RPS = 200ms)
+      RELATED_VISIBLE_COUNT: 5, // Сколько связанных произведений показывать сразу
+      SIMILAR_LIMIT: 7, // Сколько похожих аниме показывать
+      COMMENTS_LIMIT: 50, // Макс. кол-во загружаемых комментариев
+      USER_AGENT: 'TampermonkeyScript/1.0.23', // User-Agent для запросов
+      TEMPLATE_URL: 'https://raw.githubusercontent.com/404FT/404FIX/refs/heads/main/404FIX.html'
+    };
+    
+    let loaderInterval;
+    const showLoader = () => {
+        const h1 = document.querySelector('.dialog h1');
+        const p = document.querySelector('.dialog p');
+        if (h1 && p) {
+            h1.textContent = 'Загрузка данных...';
+            p.innerHTML = 'Пожалуйста, подождите. Время: <span id="loader-timer">0.0</span> c.';
+            const startTime = Date.now();
+            const timerSpan = document.getElementById('loader-timer');
+            loaderInterval = setInterval(() => {
+                if (timerSpan) {
+                    const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+                    timerSpan.textContent = elapsed;
+                }
+            }, 100);
+        }
+    };
+    
+    const hideLoader = () => {
+        clearInterval(loaderInterval);
+        log('Страница загружена, отображаем...');
+    };
+    
     const log = (...args) => console.log('[404FIX]', ...args);
+    const debug = (...args) => CONFIG.DEBUG_MODE && console.log('[404FIX]', ...args);
     const error = (...args) => console.error('[404FIX]', ...args);
 
     // --- Rate Limiter (Ограничитель запросов) ---
-    const RATE_LIMIT_MS = 200; // 1000ms / 5 RPS = 200ms
+    // const RATE_LIMIT_MS = 200; // 1000ms / 5 RPS = 200ms
     const requestQueue = [];
     let isProcessingQueue = false;
 
@@ -35,7 +70,7 @@
         } catch (e) {
             nextRequest.reject(e);
         }
-        setTimeout(processQueue, RATE_LIMIT_MS);
+        setTimeout(processQueue, CONFIG.RATE_LIMIT_MS);
     };
 
     // --- Модуль API ---
@@ -46,7 +81,7 @@
                     ? `https://shikimori.one${endpoint}`
                     : `https://shikimori.one/api${endpoint}`;
                 try {
-                    const response = await fetch(url, { headers: { 'User-Agent': 'TampermonkeyScript/1.0.4' } });
+                    const response = await fetch(url, { headers: { 'User-Agent': CONFIG.USER_AGENT } });
                     if (!response.ok) throw new Error(`API request failed: ${response.status} for ${url}`);
                     return await response.json();
                 } catch (err) {
@@ -150,7 +185,7 @@
         }
     };
     
-    const fetchComments = async (topicId, maxComments = 50) => {
+    const fetchComments = async (topicId, maxComments = CONFIG.COMMENTS_LIMIT) => {
         if (!topicId) return [];
         let allComments = [], anchor = null, page = 1, limit = 3, fetched = 0;
         const initialEndpoint = `/comments?commentable_id=${topicId}&commentable_type=Topic&limit=${limit}&order=created_at&order_direction=desc`;
@@ -179,13 +214,88 @@
         }
     };
     
+    /**
+     * @description Получает список связанных произведений с уже включенной информацией.
+     * @param {number} id - ID основного аниме.
+     * @returns {Promise<Array>} Массив объектов связанных произведений.
+     */
+    const getRelated = async (id) => {
+        try {
+            log('🔗 Запрашиваю связанные произведения...');
+            const relatedList = await apiRequest(`/animes/${id}/related`);
+            if (!Array.isArray(relatedList) || relatedList.length === 0) {
+                log('🔗 Связанные произведения не найдены.');
+                return [];
+            }
+            log(`🔗 Успешно получено ${relatedList.length} связанных произведений.`);
+            return relatedList;
+        } catch (err) {
+            error('❌ Ошибка при получении связанных произведений:', err.message);
+            return [];
+        }
+    };
+    
+    /**
+     * @description Получает и сортирует роли (персонажей и команду) для аниме.
+     * @param {number} id - ID аниме.
+     * @returns {Promise<Object>} Объект с тремя массивами: main, supporting, staff.
+     */
+    const getRoles = async (id) => {
+        const MISSING_IMAGE_URL = 'https://shikimori.one/assets/globals/missing_preview.jpg';
+        const rolesData = {
+            main: [],
+            supporting: [],
+            staff: []
+        };
+
+        try {
+            log('👥 Запрашиваю роли...');
+            const allRoles = await apiRequest(`/animes/${id}/roles`);
+            if (!Array.isArray(allRoles) || allRoles.length === 0) {
+                log('👥 Роли не найдены.');
+                return rolesData;
+            }
+
+            for (const role of allRoles) {
+                // Если есть character - это персонаж
+                if (role.character) {
+                    // Проверяем, есть ли у изображения заглушка
+                    if (role.character.image?.original?.includes('missing_original')) {
+                        role.character.image.preview = MISSING_IMAGE_URL;
+                        role.character.image.x96 = MISSING_IMAGE_URL;
+                    }
+                    if (role.roles.includes('Main')) {
+                        rolesData.main.push(role);
+                    } else if (role.roles.includes('Supporting')) {
+                        rolesData.supporting.push(role);
+                    }
+                }
+                // Если есть person - это член команды
+                else if (role.person) {
+                     if (role.person.image?.original?.includes('missing_original')) {
+                        role.person.image.preview = MISSING_IMAGE_URL;
+                        role.person.image.x96 = MISSING_IMAGE_URL;
+                    }
+                    rolesData.staff.push(role);
+                }
+            }
+            log(`👥 Роли успешно отсортированы: ${rolesData.main.length} главных, ${rolesData.supporting.length} второстепенных, ${rolesData.staff.length} из команды.`);
+            return rolesData;
+        } catch (err) {
+            error('❌ Ошибка при получении ролей:', err.message);
+            return rolesData; // Возвращаем пустую структуру в случае ошибки
+        }
+    };
+    
     const getAnimePageData = async (id) => {
         log(`📡 Запускаю параллельную загрузку данных для аниме ID: ${id}`);
-        const [animeResult, newsResult, externalLinksResult, similarResult] = await Promise.allSettled([
+        const [animeResult, newsResult, externalLinksResult, similarResult, relatedResult, rolesResult] = await Promise.allSettled([
             apiRequest(`/animes/${id}`),
             apiRequest(`/topics?forum=news&linked_type=Anime&linked_id=${id}&type=Topics::NewsTopic&limit=30&order=comments_count&order_direction=desc`),
             apiRequest(`/animes/${id}/external_links`),
-            apiRequest(`/animes/${id}/similar`)
+            apiRequest(`/animes/${id}/similar`),
+            getRelated(id),
+            getRoles(id)
         ]);
 
         if (animeResult.status === 'rejected') {
@@ -224,13 +334,121 @@
             COMMENTS: comments.map(c => ({ id: c.id, text_preview: c.body?.substring(0, 100) + '...', user_id: c.user_id, user: c.user?.nickname, created_at: c.created_at })),
             NEWS: newsResult.status === 'fulfilled' ? newsResult.value.map(t => ({ id: t.id, topic_title: t.topic_title, link: `https://shikimori.one/forum/news/${t.id}` })) : [],
             EXTERNAL_LINKS: externalLinksResult.status === 'fulfilled' ? externalLinksResult.value.map(l => ({ url: l.url, site: l.site_name, lang: l.lang })) : [],
-            SIMILAR_ANIMES: similarAnimes
+            SIMILAR_ANIMES: similarAnimes,
+            RELATED: relatedResult.status === 'fulfilled' ? relatedResult.value : [],
+            ROLES: rolesResult.status === 'fulfilled' ? rolesResult.value : { main: [], supporting: [], staff: [] }
         };
         log(`✅ Все данные для аниме ID: ${id} успешно обработаны.`);
+        debug(animeData);
         return animeData;
     };
     
     // --- Модуль отрисовки ---
+    
+    /**
+    * @description Рендерит блок связанных произведений.
+    * @param {Array} relatedData - Массив объектов из /api/animes/:id/related.
+    * @param {Object} currentUser - Объект текущего пользователя.
+    * @returns {string} Готовый HTML-блок.
+    */
+    const renderRelatedBlock = (relatedData, currentUser) => {
+        if (!Array.isArray(relatedData) || relatedData.length === 0) {
+            return '<div class="cc" style="text-align: center; padding: 20px; color: #666; font-style: italic;">Нет информации о связанных произведениях.</div>';
+        }
+
+        const visibleCount = CONFIG.RELATED_VISIBLE_COUNT;
+        const visibleItems = relatedData.slice(0, visibleCount);
+        const hiddenItems = relatedData.slice(visibleCount);
+
+        const renderItem = (item) => {
+            const entry = item.anime || item.manga;
+            if (!entry) return '';
+
+            const type = item.anime ? 'anime' : 'manga';
+            const typePlural = type === 'anime' ? 'animes' : 'mangas';
+            const url = `https://shikimori.one${entry.url}`;
+            const relationText = item.relation_russian; // Используем правильное поле
+
+            const image = entry.image?.preview ? `https://shikimori.one${entry.image.preview}` : 'https://shikimori.one/assets/globals/missing_mini.png';
+            const image2x = entry.image?.x96 ? `https://shikimori.one${entry.image.x96}` : image;
+
+            const kindText = entry.kind.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            const year = entry.aired_on?.split('-')[0] || entry.released_on?.split('-')[0] || '';
+            const studioOrPublisher = entry.studios?.[0]?.name || entry.publishers?.[0]?.name || '';
+
+            const userRateModel = JSON.stringify({
+                id: null, user_id: null, target_id: entry.id, score: 0, status: "planned",
+                episodes: 0, created_at: null, updated_at: null, target_type: type === 'anime' ? "Anime" : "Manga",
+                volumes: 0, chapters: 0, text: null, rewatches: 0
+            }).replace(/"/g, '&quot;');
+            
+            const userIdInput = currentUser ? `<input type="hidden" name="user_rate[user_id]" value="${currentUser.USER_ID}">` : '';
+            const statusText = type === 'anime' ? 'Просмотрено' : 'Прочитано';
+            const rewatchingText = type === 'anime' ? 'Пересматриваю' : 'Перечитываю';
+            const watchingText = type === 'anime' ? 'Смотрю' : 'Читаю';
+
+            return `
+            <div class="b-db_entry-variant-list_item" data-id="${entry.id}" data-text="${entry.name}" data-type="${type}" data-url="${url}">
+                <a class="image bubbled" href="${url}">
+                    <picture><source srcset="${image}, ${image2x} 2x" type="image/webp"><img alt="${entry.russian || entry.name}" src="${image}" srcset="${image2x} 2x"></picture>
+                </a>
+                <div class="info">
+                    <div class="name">
+                        <a class="b-link bubbled" href="${url}">
+                            <span class="name-en">${entry.name}</span>
+                            <span class="name-ru">${entry.russian || entry.name}</span>
+                        </a>
+                    </div>
+                    <div class="line">
+                        <div class="value">
+                            <a class="b-tag" href="https://shikimori.one/${typePlural}/kind/${entry.kind}">${kindText}</a>
+                            ${year ? `<a class="b-tag" href="https://shikimori.one/${typePlural}/season/${year}">${year} год</a>` : ''}
+                            ${studioOrPublisher ? `<a class="b-anime_status_tag studio" href="https://shikimori.one/${typePlural}/studio/${(entry.studios?.[0]?.id || entry.publishers?.[0]?.id)}" data-text="${studioOrPublisher}" title="${studioOrPublisher}"></a>` : ''}
+                            <div class="b-anime_status_tag other">${relationText}</div>
+                        </div>
+                    </div>
+                    <div class="user_rate-container">
+                        <div class="b-user_rate ${type}-${entry.id}" data-dynamic="user_rate" data-extended="false" data-model="${userRateModel}" data-target_id="${entry.id}" data-target_type="${type === 'anime' ? 'Anime' : 'Manga'}">
+                            <div>
+                              <div class="b-add_to_list planned">
+                                <form action="/api/v2/user_rates" data-method="POST" data-remote="true" data-type="json">
+                                  <input type="hidden" name="frontend" value="1">
+                                  ${userIdInput}
+                                  <input type="hidden" name="user_rate[target_id]" value="${entry.id}">
+                                  <input type="hidden" name="user_rate[target_type]" value="${type === 'anime' ? 'Anime' : 'Manga'}">
+                                  <input type="hidden" name="user_rate[status]" value="planned"><input type="hidden" name="user_rate[score]" value="0">
+                                  <div class="trigger">
+                                    <div class="trigger-arrow"></div>
+                                    <div class="text add-trigger" data-status="planned">
+                                      <div class="plus"></div><span class="status-name" data-text="Добавить в список"></span>
+                                    </div>
+                                  </div>
+                                  <div class="expanded-options">
+                                    <div class="option add-trigger" data-status="completed"><div class="text"><span class="status-name" data-text="${statusText}"></span></div></div>
+                                    <div class="option add-trigger" data-status="dropped"><div class="text"><span class="status-name" data-text="Брошено"></span></div></div>
+                                    <div class="option add-trigger" data-status="on_hold"><div class="text"><span class="status-name" data-text="Отложено"></span></div></div>
+                                    <div class="option add-trigger" data-status="planned"><div class="text"><span class="status-name" data-text="Запланировано"></span></div></div>
+                                    <div class="option add-trigger" data-status="rewatching"><div class="text"><span class="status-name" data-text="${rewatchingText}"></span></div></div>
+                                    <div class="option add-trigger" data-status="watching"><div class="text"><span class="status-name" data-text="${watchingText}"></span></div></div>
+                                  </div>
+                                </form>
+                              </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+        };
+
+        let html = `<div class="cc">${visibleItems.map(renderItem).join('')}</div>`;
+
+        if (hiddenItems.length > 0) {
+            html += `<div class="b-show_more unprocessed">+ показать остальное (${hiddenItems.length})</div>`;
+            html += `<div class="b-show_more-more" style="display: none;">${hiddenItems.map(renderItem).join('')}<div class="hide-more">— спрятать</div></div>`;
+        }
+
+        return html;
+    };
     
     const renderTemplate = (html, data) => {
       // Вставка пользовательского CSS, если он есть
@@ -259,12 +477,7 @@
       html = html.replaceAll('{{COMMENTS_ANCHOR}}', commentsAnchor);
       html = html.replaceAll('{{TOPIC_ID}}', data.INFO.TOPIC_ID || '');
       html = html.replaceAll('{{AUTHENTICITY_TOKEN}}', data.CSRF_TOKEN || '');
-      // === Похожие аниме ===
-      if (data.SIMILAR_ANIMES && Array.isArray(data.SIMILAR_ANIMES)) {
-          html = html.replace('{{SIMILAR_ANIMES}}', renderSimilarAnimesBlock(data.SIMILAR_ANIMES));
-      } else {
-          html = html.replace('{{SIMILAR_ANIMES}}', '');
-      }
+      html = html.replaceAll('{{RELATED_CONTENT}}', renderRelatedBlock(data.RELATED, data.USER));
       
       if (data.USER) {
           html = html.replaceAll('{{USER_ID}}', data.USER.USER_ID);
@@ -282,7 +495,7 @@
       
       function renderSimilarAnimes(animes) {
           if (!Array.isArray(animes) || animes.length === 0) return '';
-          return animes.slice(0, 7).map(anime => {
+          return animes.slice(0, CONFIG.SIMILAR_LIMIT).map(anime => {
               const id = anime.id;
               const kind = anime.kind === 'tv' ? 'anime' : (anime.kind || 'anime');
               const url = `https://shikimori.one/animes/${id}`;
@@ -345,6 +558,56 @@
           const entries = renderSimilarAnimes(limited);
           return entries ? `<div class="cc cc-similar">${entries}</div>` : '';
       }
+      // === Похожие аниме ===
+      if (data.SIMILAR_ANIMES && Array.isArray(data.SIMILAR_ANIMES)) {
+          html = html.replace('{{SIMILAR_ANIMES}}', renderSimilarAnimesBlock(data.SIMILAR_ANIMES));
+      } else {
+          html = html.replace('{{SIMILAR_ANIMES}}', '');
+      }
+      
+      /**
+      * @description Рендерит HTML-блок для главных персонажей.
+      * @param {Array} mainCharacters - Массив главных персонажей из getRoles.
+      * @returns {string} Готовый HTML-блок.
+      */
+      const renderMainCharacters = (mainCharacters) => {
+        if (!Array.isArray(mainCharacters) || mainCharacters.length === 0) {
+            return '<div class="cc m0" style="text-align: center; padding: 20px; color: #666; font-style: italic;">Нет информации о главных героях.</div>';
+        }
+
+        const charactersHtml = mainCharacters.map(role => {
+          const char = role.character;
+          if (!char) return '';
+
+          const url = `https://shikimori.one${char.url}`;
+          const imagePreview = char.image?.preview ? `https://shikimori.one${char.image.preview}` : 'https://shikimori.one/assets/globals/missing_preview.jpg';
+          const imageX96 = char.image?.x96 ? `https://shikimori.one${char.image.x96}` : imagePreview;
+
+          return `
+            <article class="c-column b-catalog_entry c-character entry-${char.id}" id="${char.id}" itemscope itemtype="http://schema.org/Person">
+                <meta content="https://shikimori.one${char.image.original}" itemprop="image">
+                <meta content="https://shikimori.one${char.image.x48}" itemprop="thumbnailUrl">
+                <a class="cover bubbled" data-delay="150" data-tooltip_url="/characters/${char.id}/tooltip" href="${url}">
+                    <span class="image-decor">
+                        <span class="image-cutter">
+                            <picture>
+                                <source srcset="${imagePreview}, ${imageX96} 2x" type="image/webp">
+                                <img alt="${char.russian || char.name}" src="${imagePreview}" srcset="${imageX96} 2x">
+                            </picture>
+                        </span>
+                    </span>
+                    <span class="title two_lined" itemprop="name">
+                        <span class="name-en">${char.name}</span>
+                        <span class="name-ru">${char.russian || char.name}</span>
+                    </span>
+                </a>
+            </article>
+          `;
+        }).join('');
+
+        return `<div class="cc m0">${charactersHtml}</div>`;
+      };
+      html = html.replaceAll('{{MAIN_CHARACTERS}}', renderMainCharacters(data.ROLES.main));
       
       function getRatingTooltip(rating) {
         if (!rating) return "";
@@ -435,8 +698,7 @@
       html = html.replaceAll('{{USER_RATINGS}}', renderUserRatingsHTML(data.RATINGS.USER_SCORES));
       
       function renderUserStatusesHTML(userStatuses) {
-        if (!Array.isArray(userStatuses) || userStatuses.length === 0)
-          return "";
+        if (!Array.isArray(userStatuses) || userStatuses.length === 0) return "";
         const statusNames = {
           planned: "Запланировано",
           watching: "Смотрю",
@@ -545,7 +807,7 @@
     const renderPageForAnime = async (animeId) => {
         const startTime = performance.now();
         try {
-            const templateUrl = 'https://raw.githubusercontent.com/404FT/404FIX/refs/heads/main/404FIX.html';
+            const templateUrl = CONFIG.TEMPLATE_URL;
             
             const [pageData, currentUser, htmlText, csrfToken] = await Promise.all([
                 getAnimePageData(animeId),
@@ -566,6 +828,8 @@
             }
             
             const renderedHTML = renderTemplate(htmlText, pageData);
+            
+            hideLoader();
             
             /* В будущем эти 3 строки могут сломаться */
             document.open();
@@ -614,6 +878,9 @@
         if (document.title.trim() !== '404') return;
         const match = location.pathname.match(/\/animes\/(\d+)/);
         if (!match) return;
+        
+        showLoader();
+        
         const animeId = match[1];
         renderPageForAnime(animeId);
     };
