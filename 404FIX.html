@@ -381,7 +381,7 @@
 													<div class="source">
 														<div class="key">Источник:</div>
 														<div class="val">
-															<a class='b-link' href="http://myanimelist.net/anime/{{ID}}">myanimelist.net</a>
+															<a class='b-link' href="http://myanimelist.net/anime/{{MYANIMELIST_ID}}">myanimelist.net</a>
 														</div>
 													</div>
 												</div>
@@ -499,11 +499,13 @@
 													</div>
 												</div>
 												-->
-								<!--
+								
 												<div class="block">
 													<div class="subheadline">
 														<span class="linkeable" data-href="https://shikimori.one/animes/{{ID}}/similar">Похожее</span>
 													</div>
+													{{SIMILAR_ANIMES}}
+													<!--
 													<div class="cc cc-similar">
 														<article class="c-column b-catalog_entry c-anime entry-33352 " data-track_user_rate="catalog_entry:anime:33352" id="33352" itemscope="" itemtype="http://schema.org/Movie">
 															<a class="cover anime-tooltip" data-delay="150" data-tooltip_url="https://shikimori.one/animes/33352-violet-evergarden/tooltip" href="https://shikimori.one/animes/33352-violet-evergarden" title="Violet Evergarden">
@@ -645,9 +647,12 @@
 															<meta content="https://shikimori.one/system/animes/x48/2966.jpg" itemprop="thumbnailUrl" />
 															<meta content="2008-01-09" itemprop="dateCreated" />
 														</article>
+														
 													</div>
+													-->
+													
 												</div>
-												-->
+												
 								<!--
 											<div class="block">
 												<div class="b-reviews_navigation" data-fetch_url_base="https://shikimori.one/animes/{{ID}}/reviews" data-initial_opinion="" data-initial_page="1" data-is_preview="">
