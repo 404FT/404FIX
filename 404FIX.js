@@ -1,13 +1,14 @@
 // ==UserScript==
-// @name         Shikimori 404 Fix - LOCAL
+// @name         Shikimori 404 Fix
 // @namespace    http://tampermonkey.net/
-// @version      1.2
+// @version      1.3
 // @description  Fetch anime info and render 404 pages.
 // @author       404FT
 // @updateURL    https://raw.githubusercontent.com/404FT/404FIX/refs/heads/main/404FIX.js
 // @downloadURL  https://raw.githubusercontent.com/404FT/404FIX/refs/heads/main/404FIX.js
 // @match        https://shikimori.one/*
 // @grant        none
+// @license      MIT
 // ==/UserScript==
 
 (function() {
@@ -16,12 +17,12 @@
     // --- Утилиты ---
     
     const CONFIG = {
-      DEBUG_MODE: true, // Включает/выключает подробные логи в консоли
+      DEBUG_MODE: false, // Включает/выключает подробные логи в консоли
       RATE_LIMIT_MS: 200, // Интервал между запросами к API (1000ms / 5 RPS = 200ms)
       RELATED_VISIBLE_COUNT: 5, // Сколько связанных произведений показывать сразу
       SIMILAR_LIMIT: 7, // Сколько похожих аниме показывать
       COMMENTS_LIMIT: 50, // Макс. кол-во загружаемых комментариев
-      USER_AGENT: 'TampermonkeyScript/1.0.23', // User-Agent для запросов
+      USER_AGENT: 'TampermonkeyScript/1.3', // User-Agent для запросов
       TEMPLATE_URL: 'https://raw.githubusercontent.com/404FT/404FIX/refs/heads/main/404FIX.html'
     };
     
@@ -46,6 +47,17 @@
     const hideLoader = () => {
         clearInterval(loaderInterval);
         log('Страница загружена, отображаем...');
+    };
+    
+    /**
+     * @description Искусственно вызывает события загрузки страницы, чтобы "оживить" JS-компоненты Shikimori.
+     */
+    const triggerPageLoadEvents = () => {
+        log('⚡️ Вызываю события загрузки страницы (turbolinks:load)...');
+        // Основное событие для Turbolinks
+        document.dispatchEvent(new Event('turbolinks:load'));
+        // Дополнительное стандартное событие на всякий случай
+        document.dispatchEvent(new Event('DOMContentLoaded'));
     };
     
     const log = (...args) => console.log('[404FIX]', ...args);
@@ -352,102 +364,118 @@
     * @returns {string} Готовый HTML-блок.
     */
     const renderRelatedBlock = (relatedData, currentUser) => {
-        if (!Array.isArray(relatedData) || relatedData.length === 0) {
-            return '<div class="cc" style="text-align: center; padding: 20px; color: #666; font-style: italic;">Нет информации о связанных произведениях.</div>';
-        }
+      if (!Array.isArray(relatedData) || relatedData.length === 0) {
+          return '<div class="cc" style="text-align: center; padding: 20px; color: #666; font-style: italic;">Нет информации о связанных произведениях.</div>';
+      }
 
-        const visibleCount = CONFIG.RELATED_VISIBLE_COUNT;
-        const visibleItems = relatedData.slice(0, visibleCount);
-        const hiddenItems = relatedData.slice(visibleCount);
+      const visibleCount = CONFIG.RELATED_VISIBLE_COUNT;
+      const visibleItems = relatedData.slice(0, visibleCount);
+      const hiddenItems = relatedData.slice(visibleCount);
 
-        const renderItem = (item) => {
-            const entry = item.anime || item.manga;
-            if (!entry) return '';
+      const renderItem = (item) => {
+          const entry = item.anime || item.manga;
+          if (!entry) return '';
 
-            const type = item.anime ? 'anime' : 'manga';
-            const typePlural = type === 'anime' ? 'animes' : 'mangas';
-            const url = `https://shikimori.one${entry.url}`;
-            const relationText = item.relation_russian; // Используем правильное поле
+          const type = item.anime ? 'anime' : 'manga';
+          const typePascalCase = type.charAt(0).toUpperCase() + type.slice(1);
+          const typePlural = entry.url.startsWith('/ranobe') ? 'ranobe' : (type === 'anime' ? 'animes' : 'mangas');
+          const url = `https://shikimori.one${entry.url}`;
+          const relationText = item.relation_russian;
 
-            const image = entry.image?.preview ? `https://shikimori.one${entry.image.preview}` : 'https://shikimori.one/assets/globals/missing_mini.png';
-            const image2x = entry.image?.x96 ? `https://shikimori.one${entry.image.x96}` : image;
+          const image = entry.image?.preview ? `https://shikimori.one${entry.image.preview}` : 'https://shikimori.one/assets/globals/missing_mini.png';
+          const image2x = entry.image?.x96 ? `https://shikimori.one${entry.image.x96}` : image;
 
-            const kindText = entry.kind.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-            const year = entry.aired_on?.split('-')[0] || entry.released_on?.split('-')[0] || '';
-            const studioOrPublisher = entry.studios?.[0]?.name || entry.publishers?.[0]?.name || '';
+          const kindText = entry.kind.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+          const year = entry.aired_on?.split('-')[0] || entry.released_on?.split('-')[0] || '';
+          
+          const dataEntry = JSON.stringify({
+              id: entry.id,
+              episodes: entry.episodes || null,
+              chapters: entry.chapters || null,
+              volumes: entry.volumes || null
+          }).replace(/"/g, '&quot;');
 
-            const userRateModel = JSON.stringify({
-                id: null, user_id: null, target_id: entry.id, score: 0, status: "planned",
-                episodes: 0, created_at: null, updated_at: null, target_type: type === 'anime' ? "Anime" : "Manga",
-                volumes: 0, chapters: 0, text: null, rewatches: 0
-            }).replace(/"/g, '&quot;');
-            
-            const userIdInput = currentUser ? `<input type="hidden" name="user_rate[user_id]" value="${currentUser.USER_ID}">` : '';
-            const statusText = type === 'anime' ? 'Просмотрено' : 'Прочитано';
-            const rewatchingText = type === 'anime' ? 'Пересматриваю' : 'Перечитываю';
-            const watchingText = type === 'anime' ? 'Смотрю' : 'Читаю';
+          const userRateModel = JSON.stringify({
+              id: null, user_id: null, target_id: entry.id, score: 0, status: "planned",
+              episodes: entry.episodes || 0,
+              chapters: entry.chapters || 0,
+              volumes: entry.volumes || 0,
+              created_at: null, updated_at: null, target_type: typePascalCase,
+              text: null, rewatches: 0
+          }).replace(/"/g, '&quot;');
+          
+          const userIdInput = currentUser ? `<input type="hidden" name="user_rate[user_id]" value="${currentUser.USER_ID}">` : '';
+          const statusText = type === 'anime' ? 'Просмотрено' : 'Прочитано';
+          const rewatchingText = type === 'anime' ? 'Пересматриваю' : 'Перечитываю';
+          const watchingText = type === 'anime' ? 'Смотрю' : 'Читаю';
 
-            return `
-            <div class="b-db_entry-variant-list_item" data-id="${entry.id}" data-text="${entry.name}" data-type="${type}" data-url="${url}">
-                <a class="image bubbled" href="${url}">
-                    <picture><source srcset="${image}, ${image2x} 2x" type="image/webp"><img alt="${entry.russian || entry.name}" src="${image}" srcset="${image2x} 2x"></picture>
-                </a>
-                <div class="info">
-                    <div class="name">
-                        <a class="b-link bubbled" href="${url}">
-                            <span class="name-en">${entry.name}</span>
-                            <span class="name-ru">${entry.russian || entry.name}</span>
-                        </a>
-                    </div>
-                    <div class="line">
-                        <div class="value">
-                            <a class="b-tag" href="https://shikimori.one/${typePlural}/kind/${entry.kind}">${kindText}</a>
-                            ${year ? `<a class="b-tag" href="https://shikimori.one/${typePlural}/season/${year}">${year} год</a>` : ''}
-                            ${studioOrPublisher ? `<a class="b-anime_status_tag studio" href="https://shikimori.one/${typePlural}/studio/${(entry.studios?.[0]?.id || entry.publishers?.[0]?.id)}" data-text="${studioOrPublisher}" title="${studioOrPublisher}"></a>` : ''}
-                            <div class="b-anime_status_tag other">${relationText}</div>
-                        </div>
-                    </div>
-                    <div class="user_rate-container">
-                        <div class="b-user_rate ${type}-${entry.id}" data-dynamic="user_rate" data-extended="false" data-model="${userRateModel}" data-target_id="${entry.id}" data-target_type="${type === 'anime' ? 'Anime' : 'Manga'}">
-                            <div>
-                              <div class="b-add_to_list planned">
-                                <form action="/api/v2/user_rates" data-method="POST" data-remote="true" data-type="json">
-                                  <input type="hidden" name="frontend" value="1">
-                                  ${userIdInput}
-                                  <input type="hidden" name="user_rate[target_id]" value="${entry.id}">
-                                  <input type="hidden" name="user_rate[target_type]" value="${type === 'anime' ? 'Anime' : 'Manga'}">
-                                  <input type="hidden" name="user_rate[status]" value="planned"><input type="hidden" name="user_rate[score]" value="0">
-                                  <div class="trigger">
-                                    <div class="trigger-arrow"></div>
-                                    <div class="text add-trigger" data-status="planned">
-                                      <div class="plus"></div><span class="status-name" data-text="Добавить в список"></span>
-                                    </div>
+          return `
+          <div class="b-db_entry-variant-list_item" data-id="${entry.id}" data-text="${entry.name}" data-type="${type}" data-url="${url}">
+              <a class="image bubbled" href="${url}">
+                  <picture><source srcset="${image}, ${image2x} 2x" type="image/webp"><img alt="${entry.russian || entry.name}" src="${image}" srcset="${image2x} 2x"></picture>
+              </a>
+              <div class="info">
+                  <div class="name">
+                      <a class="b-link bubbled" href="${url}">
+                          <span class="name-en">${entry.name}</span>
+                          <span class="name-ru">${entry.russian || entry.name}</span>
+                      </a>
+                  </div>
+                  <div class="line">
+                      <div class="value">
+                          <a class="b-tag" href="https://shikimori.one/${typePlural}/kind/${entry.kind}">${kindText}</a>
+                          ${year ? `<a class="b-tag" href="https://shikimori.one/${typePlural}/season/${year}">${year} год</a>` : ''}
+                          <div class="b-anime_status_tag other">${relationText}</div>
+                      </div>
+                  </div>
+                  <div class="user_rate-container">
+                      <div class="b-user_rate ${type}-${entry.id}"
+                          data-dynamic="user_rate"
+                          data-entry="${dataEntry}"
+                          data-extended="false"
+                          data-model="${userRateModel}"
+                          data-target_id="${entry.id}"
+                          data-target_type="${typePascalCase}"
+                          data-track_user_rate="user_rate:${type}:${entry.id}">
+                          <div>
+                            <div class="b-add_to_list planned">
+                              <form action="/api/v2/user_rates" data-method="POST" data-remote="true" data-type="json">
+                                <input type="hidden" name="frontend" value="1">
+                                ${userIdInput}
+                                <input type="hidden" name="user_rate[target_id]" value="${entry.id}">
+                                <input type="hidden" name="user_rate[target_type]" value="${typePascalCase}">
+                                <input type="hidden" name="user_rate[status]" value="planned"><input type="hidden" name="user_rate[score]" value="0">
+                                <div class="trigger">
+                                  <div class="trigger-arrow"></div>
+                                  <div class="text add-trigger" data-status="planned">
+                                    <div class="plus"></div><span class="status-name" data-text="Добавить в список"></span>
                                   </div>
-                                  <div class="expanded-options">
-                                    <div class="option add-trigger" data-status="completed"><div class="text"><span class="status-name" data-text="${statusText}"></span></div></div>
-                                    <div class="option add-trigger" data-status="dropped"><div class="text"><span class="status-name" data-text="Брошено"></span></div></div>
-                                    <div class="option add-trigger" data-status="on_hold"><div class="text"><span class="status-name" data-text="Отложено"></span></div></div>
-                                    <div class="option add-trigger" data-status="planned"><div class="text"><span class="status-name" data-text="Запланировано"></span></div></div>
-                                    <div class="option add-trigger" data-status="rewatching"><div class="text"><span class="status-name" data-text="${rewatchingText}"></span></div></div>
-                                    <div class="option add-trigger" data-status="watching"><div class="text"><span class="status-name" data-text="${watchingText}"></span></div></div>
-                                  </div>
-                                </form>
-                              </div>
+                                </div>
+                                <div class="expanded-options">
+                                  <div class="option add-trigger" data-status="completed"><div class="text"><span class="status-name" data-text="${statusText}"></span></div></div>
+                                  <div class="option add-trigger" data-status="dropped"><div class="text"><span class="status-name" data-text="Брошено"></span></div></div>
+                                  <div class="option add-trigger" data-status="on_hold"><div class="text"><span class="status-name" data-text="Отложено"></span></div></div>
+                                  <div class="option add-trigger" data-status="planned"><div class="text"><span class="status-name" data-text="Запланировано"></span></div></div>
+                                  <div class="option add-trigger" data-status="rewatching"><div class="text"><span class="status-name" data-text="${rewatchingText}"></span></div></div>
+                                  <div class="option add-trigger" data-status="watching"><div class="text"><span class="status-name" data-text="${watchingText}"></span></div></div>
+                                </div>
+                              </form>
                             </div>
-                        </div>
-                    </div>
-                </div>
-            </div>`;
-        };
+                          </div>
+                      </div>
+                  </div>
+              </div>
+          </div>`;
+      };
 
-        let html = `<div class="cc">${visibleItems.map(renderItem).join('')}</div>`;
+      let html = `<div class="cc">${visibleItems.map(renderItem).join('')}</div>`;
 
-        if (hiddenItems.length > 0) {
-            html += `<div class="b-show_more unprocessed">+ показать остальное (${hiddenItems.length})</div>`;
-            html += `<div class="b-show_more-more" style="display: none;">${hiddenItems.map(renderItem).join('')}<div class="hide-more">— спрятать</div></div>`;
-        }
+      if (hiddenItems.length > 0) {
+          html += `<div class="b-show_more unprocessed">+ показать остальное (${hiddenItems.length})</div>`;
+          html += `<div class="b-show_more-more" style="display: none;">${hiddenItems.map(renderItem).join('')}<div class="hide-more">— спрятать</div></div>`;
+      }
 
-        return html;
+      return html;
     };
     
     const renderTemplate = (html, data) => {
@@ -609,6 +637,100 @@
       };
       html = html.replaceAll('{{MAIN_CHARACTERS}}', renderMainCharacters(data.ROLES.main));
       
+      function renderStaffBlock(staff) {
+        if (!Array.isArray(staff) || staff.length === 0) {
+            return '<div class="cc" style="text-align:center;padding:20px;color:#666;font-style:italic;">Нет информации о команде.</div>';
+        }
+
+        // 1) Таблица важности ролей (ближе к Shikimori)
+        const ROLE_PRIORITY = {
+            "Original Creator": 1,
+            "Story": 1,
+            "Script": 1,
+
+            "Director": 2,
+            "Series Composition": 2,
+            "Episode Director": 3,
+            "Storyboard": 3,
+
+            "Chief Animation Director": 4,
+            "Animation Director": 5,
+            "Character Design": 5,
+
+            "Chief Producer": 6,
+            "Producer": 7,
+
+            "Key Animation": 8,
+            "2nd Key Animation": 9,
+            "In-Between Animation": 10
+        };
+
+        // 2) Функция определения важности человека
+        function getPersonPriority(role) {
+            return Math.min(
+                ...role.roles.map(r => ROLE_PRIORITY[r] || 999)
+            );
+        }
+
+        // 3) Сортировка staff по важности
+        const sortedStaff = staff
+            .slice() // копия массива
+            .sort((a, b) => getPersonPriority(a) - getPersonPriority(b))
+            .slice(0, 5); // максимум 5 человек
+
+        // 4) Рендер
+        return `
+          <div class="cc">
+              ${sortedStaff.map(role => {
+                  const p = role.person;
+                  const id = p.id;
+                  const url = `https://shikimori.one${p.url}`;
+
+                  const imgPreview = p.image?.preview
+                      ? `https://shikimori.one${p.image.preview}`
+                      : '/assets/globals/missing/mini.png';
+
+                  const img2x = p.image?.x96
+                      ? `https://shikimori.one${p.image.x96}`
+                      : '/assets/globals/missing/mini@2x.png';
+                  
+                  const img4x = p.image?.x48
+                      ? `https://shikimori.one${p.image.x48}`
+                      : '/assets/globals/missing/mini@4x.png';
+                  
+                  const roleTags = role.roles
+                      .map(r => `<div class="b-tag">${r}</div>`)
+                      .join('');
+
+                  return `
+                      <div class="b-db_entry-variant-list_item"
+                          data-id="${id}" data-text="${p.russian || p.name}"
+                          data-type="person" data-url="${url}">
+                          <a class="image bubbled" href="${url}">
+                              <picture>
+                                  <img src="${img4x}" srcset="${img2x} 2x" alt="${p.russian || p.name}">
+                              </picture>
+                          </a>
+                          <div class="info">
+                              <div class="name">
+                                  <a class="b-link bubbled" href="${url}">
+                                      <span class="name-en">${p.name}</span>
+                                      <span class="name-ru">${p.russian || p.name}</span>
+                                  </a>
+                              </div>
+                              <div class="line multiline">
+                                  <div class="key">${role.roles.length > 1 ? 'Роли:' : 'Роль:'}</div>
+                                  <div class="value">${roleTags}</div>
+                              </div>
+                          </div>
+                      </div>
+                  `;
+              }).join('')}
+          </div>
+        `;
+      }
+      html = html.replace('{{STAFF}}', renderStaffBlock(data.ROLES.staff));
+      
       function getRatingTooltip(rating) {
         if (!rating) return "";
         switch (rating) {
@@ -752,8 +874,7 @@
         if (!Array.isArray(subtitles) || subtitles.length === 0) return "";
         return subtitles
           .map(
-            (s) =>
-              `<div class="b-menu-line" title="${s.name}">${s.name}</div>`
+            (s) => `<div class="b-menu-line" title="${s.name}">${s.name}</div>`
           )
           .join("\n");
       }
@@ -804,85 +925,124 @@
     };
 
     // --- Основная логика ---
-    const renderPageForAnime = async (animeId) => {
+    let renderPageForAnime = async (animeId) => {
         const startTime = performance.now();
         try {
             const templateUrl = CONFIG.TEMPLATE_URL;
-            
+
             const [pageData, currentUser, htmlText, csrfToken] = await Promise.all([
                 getAnimePageData(animeId),
                 getCurrentUser(),
                 fetch(templateUrl).then(res => res.text()),
                 getCsrfToken()
             ]);
-            
+
             pageData.CSRF_TOKEN = csrfToken;
-            
-            // Если пользователь есть, добавляем его данные и ЗАПРАШИВАЕМ ЕГО СТИЛЬ
+
             if (currentUser) {
                 pageData.USER = currentUser;
-                // Запрашиваем CSS и добавляем его в pageData
                 pageData.USER_CSS = await getUserStyle(currentUser.USER_ID);
             } else {
                 pageData.USER_CSS = null;
             }
-            
+
             const renderedHTML = renderTemplate(htmlText, pageData);
-            
             hideLoader();
-            
-            /* В будущем эти 3 строки могут сломаться */
+
             document.open();
             document.write(renderedHTML);
             document.close();
-            
-            // --- Если сломается, меняйте на это ---
-            /*
-            // Парсим HTML и извлекаем ТОЛЬКО BODY
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(fullRenderedHTML, 'text/html');
-            const newBody = doc.body;
 
-            // Заменяем существующий body на новый, сохраняя head
-            document.body.innerHTML = newBody.innerHTML;
-            
-            // Копируем атрибуты из нового body в существующий
-            for (const attr of newBody.attributes) {
-                document.body.setAttribute(attr.name, attr.value);
-            }
-            */
         } catch (e) {
-            error(`Ошибка при рендере страницы для аниме ID ${animeId}:`, e.message);
+            error(`Ошибка при рендере страницы для аниме ID ${animeId}:`, e);
+            console.error(e);
         } finally {
-            const endTime = performance.now();
-            const duration = (endTime - startTime).toFixed(2);
-            log(`✅ Страница полностью отрисована за ${duration} мс.`);
+            const duration = (performance.now() - startTime).toFixed(2);
+            log(`Страница отрисована за ${duration} мс`);
         }
     };
 
-    window.restoreAnimePage = async (animeId) => {
-        const startTime = performance.now();
-        log(`🔄 Ручное восстановление аниме ID: ${animeId}`);
-        await renderPageForAnime(animeId);
-        const script = document.createElement('script');
-        script.src = '/packs/javascripts/application.js';
-        script.onload = () => log('📊 Графики инициализированы');
-        script.onerror = () => error('Не удалось загрузить скрипт для графиков.');
-        document.head.appendChild(script);
-        const endTime = performance.now();
-        const duration = (endTime - startTime).toFixed(2);
-        log(`✅ Ручное восстановление завершено за ${duration} мс (включая загрузку доп. скрипта).`);
+    // === Поддержка кнопки "Ответить" ===
+    const setupReplyButtons = () => {
+        const textarea = document.querySelector('textarea[name="comment[body]"]');
+        if (!textarea) {
+            log('Редактор не найден — кнопка Ответить не будет работать');
+            return false;
+        }
+
+        document.addEventListener('click', e => {
+
+
+            const btn = e.target.closest('.item-reply');
+            if (!btn) return;
+
+            const comment = btn.closest('.b-comment');
+            if (!comment) return;
+
+            const commentId = comment.id.replace('comment-', '') || comment.dataset.track_comment;
+            const userId = comment.dataset.user_id;
+            const nickname = comment.dataset.user_nickname ||
+                            comment.querySelector('.name a')?.textContent.trim() ||
+                            'анон';
+
+            if (!commentId || !userId) return;
+
+            e.preventDefault();
+
+            const tag = `[comment=${commentId};${userId}]`;
+            const val = textarea.value;
+            const insert = val && !val.endsWith('\n') ? '\n' + tag : tag;
+
+            textarea.value = val + insert;
+            textarea.focus();
+            textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+            textarea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+            // Кнопка "назад"
+            const back = document.querySelector('.return-to-reply');
+            if (back) {
+                back.style.visibility = 'visible';
+                back.textContent = `к @${nickname}`;
+                back.onclick = () => {
+                    comment.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                };
+            }
+
+            // Визуальный отклик
+            btn.style.opacity = '0.5';
+            setTimeout(() => btn.style.opacity = '', 200);
+        });
+
+        log('Кнопка «Ответить» активирована');
+        return true;
     };
 
+    // === Перехватываем renderPageForAnime и добавляем инициализацию reply ===
+    const originalRender = renderPageForAnime;
+    renderPageForAnime = async function(animeId) {
+        await originalRender(animeId);
+
+        // Даем DOM обновиться
+        setTimeout(() => {
+            setupReplyButtons();
+        }, 150);
+    };
+
+    // === Ручное восстановление (для отладки) ===
+    window.restoreAnimePage = async (animeId) => {
+        log(`Ручное восстановление аниме ${animeId}`);
+        showLoader();
+        await renderPageForAnime(animeId);
+    };
+
+    // === Автозапуск ===
     const init = () => {
         if (document.title.trim() !== '404') return;
         const match = location.pathname.match(/\/animes\/(\d+)/);
         if (!match) return;
-        
+
         showLoader();
-        
-        const animeId = match[1];
-        renderPageForAnime(animeId);
+        renderPageForAnime(match[1]);
     };
 
     init();
