@@ -58,10 +58,17 @@
 		<meta name="csrf-param" content="authenticity_token" />
 		<meta name="csrf-token" content="{{AUTHENTICITY_TOKEN}}" />
 		<script nomodule="" src="/outdated-browser.js"></script>
-		<link rel="stylesheet" href="/packs/css/vendors-0e6f18ae.css" media="all" data-turbolinks-track="reload" />
-		<link rel="stylesheet" href="/assets/application-90aa92662fcbfe39b6ac335004e5bd7ac1bc0e62e71bda2f1e27e06d290f3ac2.css" media="all" data-turbolinks-track="reload" />
-		<script src="/packs/js/vendors-14c9aaee16aa763c36d9.js" data-turbolinks-track="reload" defer="defer"></script>
-		<script src="/packs/js/application-dee20e8725d1eda15c8b.js" data-turbolinks-track="reload" defer="defer"></script>
+		{{FETCHED_CSS}}
+		{{FETCHED_JS}}
+		<script>
+			document.addEventListener('DOMContentLoaded', function() {
+				// для совместимости счётчиков с турболинками
+				$(document).on('turbolinks:before-visit', function() {
+					window.turbolinks_referer = location.href;
+					console.log("turbolinks_referer was linked successfully!");
+				});
+			});
+		</script>
 	</head>
 	<body class="p-animes p-animes-show p-db_entries p-db_entries-show x1200" data-camo_url="https://camo-v3.shikimori.one/" data-env="production" data-faye="[&quot;/private-{{USER_ID}}&quot;]" data-faye_url="https://faye-v2.shikimori.one/" data-js_export_supervisor_keys="[&quot;user_rates&quot;,&quot;topics&quot;,&quot;comments&quot;,&quot;polls&quot;]" data-locale="ru" data-localized_genres="ru" data-localized_names="ru" data-server_time="2025-11-03T17:53:43+03:00" data-user="{&quot;id&quot;:{{USER_ID}},&quot;url&quot;:&quot;https://shikimori.one/{{USER_NICK}}&quot;,&quot;is_moderator&quot;:false,&quot;ignored_topics&quot;:[],&quot;ignored_users&quot;:[],&quot;is_day_registered&quot;:true,&quot;is_week_registered&quot;:true,&quot;is_comments_auto_collapsed&quot;:true,&quot;is_comments_auto_loaded&quot;:true}" id="animes_show">
 		<style id="custom_css" type="text/css"></style>
@@ -1122,10 +1129,13 @@
 				<div class="marker-text" data-text="Сообщить об ошибке"></div>
 			</span>
 		</div>
-		<!--
-		<script>
-			ТУТ БЫЛ СКРИПТ
+		<script id="js_export">
+			{{JS_EXPORT}}
 		</script>
-		-->
+		<script>
+			//<![CDATA[
+			window.gon={};gon.is_favoured=false;
+			//]]>
+		</script>
 	</body>
 </html>
