@@ -1,14 +1,13 @@
 // ==UserScript==
 // @name         Shikimori 404 Fix
 // @namespace    http://tampermonkey.net/
-// @version      1.3
+// @version      1.4
 // @description  Fetch anime info and render 404 pages.
 // @author       404FT
 // @updateURL    https://raw.githubusercontent.com/404FT/404FIX/refs/heads/main/404FIX.js
 // @downloadURL  https://raw.githubusercontent.com/404FT/404FIX/refs/heads/main/404FIX.js
 // @match        https://shikimori.one/*
 // @grant        none
-// @license      MIT
 // ==/UserScript==
 
 (function() {
@@ -17,13 +16,14 @@
     // --- Утилиты ---
     
     const CONFIG = {
-      DEBUG_MODE: false, // Включает/выключает подробные логи в консоли
+      DEBUG_MODE: true, // Включает/выключает подробные логи в консоли
       RATE_LIMIT_MS: 200, // Интервал между запросами к API (1000ms / 5 RPS = 200ms)
       RELATED_VISIBLE_COUNT: 5, // Сколько связанных произведений показывать сразу
       SIMILAR_LIMIT: 7, // Сколько похожих аниме показывать
       COMMENTS_LIMIT: 50, // Макс. кол-во загружаемых комментариев
-      USER_AGENT: 'TampermonkeyScript/1.3', // User-Agent для запросов
-      TEMPLATE_URL: 'https://raw.githubusercontent.com/404FT/404FIX/refs/heads/main/404FIX.html'
+      USER_AGENT: 'TampermonkeyScript/1.0.4', // User-Agent для запросов
+      TEMPLATE_URL: 'https://raw.githubusercontent.com/404FT/404FIX/refs/heads/main/404FIX.html',
+      DONOR_URL: 'https://shikimori.one/animes/62616-sheng-dan-chuanqi-zhu-gong-de-shaizi'
     };
     
     let loaderInterval;
@@ -161,39 +161,54 @@
     };
     
     /**
-     * @description Загружает "донорскую" страницу, чтобы извлечь из неё свежий CSRF-токен.
-     * @returns {Promise<string|null>} CSRF-токен или null в случае ошибки.
+     * @description Загружает "донорскую" страницу для извлечения свежих ассетов: CSRF-токена, CSS и JS ссылок.
      */
-    const getCsrfToken = async () => {
+    const getPageAssets = async () => {
+        const assets = {
+            CSRF_TOKEN: null,
+            FETCHED_CSS: '',
+            FETCHED_JS: ''
+        };
         try {
-            log('🔄 Запрашиваю страницу-донор для CSRF-токена...');
-            /**
-             * Для тестов на скорость загрузки
-             * https://shikimori.one/animes/1-cowboy-bebop
-             * https://shikimori.one/animes/62616-sheng-dan-chuanqi-zhu-gong-de-shaizi
-             */
-            const url = 'https://shikimori.one/animes/62616-sheng-dan-chuanqi-zhu-gong-de-shaizi'; // Любая живая страница
-            const response = await fetch(url);
-            if (!response.ok) {
-                throw new Error(`[404FIX] Статус ответа: ${response.status}`);
-            }
+            log('📦 Запрашиваю страницу-донор для получения свежих ассетов (CSRF, CSS, JS)...');
+            const response = await fetch(CONFIG.DONOR_URL);
+            if (!response.ok) throw new Error(`Статус ответа: ${response.status}`);
+            
             const pageHtml = await response.text();
-
-            // Используем DOMParser, чтобы безопасно найти элемент, не вставляя его в DOM
             const parser = new DOMParser();
             const doc = parser.parseFromString(pageHtml, 'text/html');
-            const tokenElement = doc.querySelector('meta[name="csrf-token"]');
 
+            // 1. Извлекаем CSRF-токен
+            const tokenElement = doc.querySelector('meta[name="csrf-token"]');
             if (tokenElement) {
-                const token = tokenElement.getAttribute('content');
-                log('🔄 CSRF-токен успешно извлечён.');
-                return token;
+                assets.CSRF_TOKEN = tokenElement.getAttribute('content');
+                log('📦 CSRF-токен успешно извлечён.');
             } else {
-                throw new Error('Мета-тег csrf-token не найден на странице-доноре.');
+                error('⚠️ Мета-тег csrf-token не найден на странице-доноре.');
             }
+
+            // 2. Собираем все теги <link rel="stylesheet"> с путями /packs/ или /assets/
+            const cssLinks = doc.querySelectorAll('head > link[rel="stylesheet"][href^="/packs/"], head > link[rel="stylesheet"][href^="/assets/"]');
+            if (cssLinks) {
+                assets.FETCHED_CSS = Array.from(cssLinks).map(link => link.outerHTML).join('\n');
+                log(`📦 Найдено и извлечено ${cssLinks.length} CSS-ссылок.`);
+            } else {
+                error('⚠️ CSS-ссылки не найдены на странице-доноре.');
+            }
+
+            // 3. Собираем все теги <script defer> с путями /packs/
+            const jsScripts = doc.querySelectorAll('head > script[defer][src*="/packs/js/"]');
+            if (jsScripts) {
+                assets.FETCHED_JS = Array.from(jsScripts).map(script => script.outerHTML).join('\n');
+                log(`📦 Найдено и извлечено ${jsScripts.length} JS-ссылок.`);
+            } else {
+                error('⚠️ JS-скрипты не найдены на странице-доноре.');
+            }
+
+            return assets;
         } catch (err) {
-            error('❌ Ошибка при получении CSRF-токена:', err.message);
-            return null; // Важно вернуть null, чтобы не сломать остальной скрипт
+            error('❌ Ошибка при получении ассетов страницы:', err.message);
+            return assets; // Возвращаем пустую структуру, чтобы не сломать скрипт
         }
     };
     
@@ -504,7 +519,9 @@
       const commentsAnchor = (Array.isArray(data.COMMENTS) && data.COMMENTS.length > 0) ? data.COMMENTS[0].id : 0;
       html = html.replaceAll('{{COMMENTS_ANCHOR}}', commentsAnchor);
       html = html.replaceAll('{{TOPIC_ID}}', data.INFO.TOPIC_ID || '');
-      html = html.replaceAll('{{AUTHENTICITY_TOKEN}}', data.CSRF_TOKEN || '');
+      html = html.replaceAll('{{AUTHENTICITY_TOKEN}}', data.ASSETS.CSRF_TOKEN || '');
+      html = html.replace('{{FETCHED_CSS}}', data.ASSETS.FETCHED_CSS || '');
+      html = html.replace('{{FETCHED_JS}}', data.ASSETS.FETCHED_JS || '');
       html = html.replaceAll('{{RELATED_CONTENT}}', renderRelatedBlock(data.RELATED, data.USER));
       
       if (data.USER) {
@@ -929,39 +946,61 @@
         const startTime = performance.now();
         try {
             const templateUrl = CONFIG.TEMPLATE_URL;
-
-            const [pageData, currentUser, htmlText, csrfToken] = await Promise.all([
+            
+            const [pageData, currentUser, htmlText, pageAssets] = await Promise.all([
                 getAnimePageData(animeId),
                 getCurrentUser(),
                 fetch(templateUrl).then(res => res.text()),
-                getCsrfToken()
+                getPageAssets()
             ]);
-
-            pageData.CSRF_TOKEN = csrfToken;
-
+            
+            // Передаем все ассеты в основной объект данных
+            pageData.ASSETS = pageAssets;
+            
+            // Если пользователь есть, добавляем его данные и ЗАПРАШИВАЕМ ЕГО СТИЛЬ
             if (currentUser) {
                 pageData.USER = currentUser;
+                // Запрашиваем CSS и добавляем его в pageData
                 pageData.USER_CSS = await getUserStyle(currentUser.USER_ID);
             } else {
                 pageData.USER_CSS = null;
             }
-
+            
             const renderedHTML = renderTemplate(htmlText, pageData);
+            
             hideLoader();
-
+            
+            /* В будущем эти 3 строки могут сломаться */
             document.open();
             document.write(renderedHTML);
             document.close();
+            
+            // --- Если сломается, меняйте на это ---
+            /*
+            // Парсим HTML и извлекаем ТОЛЬКО BODY
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(fullRenderedHTML, 'text/html');
+            const newBody = doc.body;
 
+            // Заменяем существующий body на новый, сохраняя head
+            document.body.innerHTML = newBody.innerHTML;
+            
+            // Копируем атрибуты из нового body в существующий
+            for (const attr of newBody.attributes) {
+                document.body.setAttribute(attr.name, attr.value);
+            }
+            */
+            
+            setTimeout(triggerPageLoadEvents, 0);
         } catch (e) {
-            error(`Ошибка при рендере страницы для аниме ID ${animeId}:`, e);
-            console.error(e);
+            error(`Ошибка при рендере страницы для аниме ID ${animeId}:`, e.message);
         } finally {
-            const duration = (performance.now() - startTime).toFixed(2);
-            log(`Страница отрисована за ${duration} мс`);
+            const endTime = performance.now();
+            const duration = (endTime - startTime).toFixed(2);
+            log(`✅ Страница полностью отрисована за ${duration} мс.`);
         }
     };
-
+    
     // === Поддержка кнопки "Ответить" ===
     const setupReplyButtons = () => {
         const textarea = document.querySelector('textarea[name="comment[body]"]');
@@ -971,8 +1010,6 @@
         }
 
         document.addEventListener('click', e => {
-
-
             const btn = e.target.closest('.item-reply');
             if (!btn) return;
 
@@ -989,7 +1026,7 @@
 
             e.preventDefault();
 
-            const tag = `[comment=${commentId};${userId}]`;
+            const tag = `[comment=${commentId};${userId}], @${nickname} `;
             const val = textarea.value;
             const insert = val && !val.endsWith('\n') ? '\n' + tag : tag;
 
@@ -1016,7 +1053,85 @@
         log('Кнопка «Ответить» активирована');
         return true;
     };
+    
+    // === Поддержка кнопки "Добавить в список" в блоке связанных произведений ===
+    const setupAddToListButtons = () => {
+        // Обработчик выбора статуса (клик по опции)
+        document.addEventListener('click', e => {
+            const trigger = e.target.closest('.add-trigger');
+            if (!trigger) return;
 
+            // === FIX START ===
+            // Проверяем, находится ли кнопка внутри контейнера с классом "cc"
+            // Если нет (например, это кнопка в .c-image), прекращаем выполнение
+            if (!trigger.closest('.cc')) return;
+            // === FIX END ===
+
+            const option = trigger.closest('.option') || trigger.closest('.text.add-trigger');
+            if (!option) return;
+            const container = trigger.closest('.b-user_rate');
+            if (!container) return;
+            const status = option.dataset.status || trigger.dataset.status;
+            if (!status) return;
+            const form = container.querySelector('form');
+            if (!form) return;
+
+            e.preventDefault();
+
+            // Меняем значение статуса
+            const statusInput = form.querySelector('input[name="user_rate[status]"]');
+            if (statusInput) statusInput.value = status;
+
+            // Обновляем текст кнопки
+            const textSpan = container.querySelector('.text.add-trigger .status-name');
+            if (textSpan) {
+                const statusTexts = {
+                    planned: 'Запланировано',
+                    watching: 'Читаю', rewatching: 'Перечитываю',
+                    completed: 'Прочитано',
+                    on_hold: 'Отложено',
+                    dropped: 'Брошено'
+                };
+                textSpan.setAttribute('data-text', statusTexts[status] || status);
+                textSpan.textContent = statusTexts[status] || status;
+            }
+
+            // Сворачиваем меню
+            const expanded = container.querySelector('.expanded-options');
+            if (expanded) expanded.style.display = 'none';
+
+            // Отправляем форму
+            const event = new Event('submit', { bubbles: true, cancelable: true });
+            form.dispatchEvent(event);
+        });
+
+        // Обработчик открытия/закрытия дропдауна
+        document.addEventListener('click', e => {
+            const trigger = e.target.closest('.trigger');
+            if (!trigger) return;
+
+            // === FIX START ===
+            // Изолируем логику только для кнопок внутри .cc
+            if (!trigger.closest('.cc')) return;
+            // === FIX END ===
+
+            const container = trigger.closest('.b-user_rate');
+            if (!container) return;
+            const expanded = container.querySelector('.expanded-options');
+            if (!expanded) return;
+
+            const isVisible = expanded.style.display === 'block';
+
+            // Закрываем все открытые меню (можно ограничить область, но лучше закрывать везде для UI)
+            document.querySelectorAll('.expanded-options').forEach(el => el.style.display = 'none');
+
+            // Открываем текущий, если он был закрыт
+            expanded.style.display = isVisible ? 'none' : 'block';
+        });
+
+        log('Кнопки «Добавить в список» в связанных произведениях (внутри .cc) активированы');
+    };
+    
     // === Перехватываем renderPageForAnime и добавляем инициализацию reply ===
     const originalRender = renderPageForAnime;
     renderPageForAnime = async function(animeId) {
@@ -1024,25 +1139,34 @@
 
         // Даем DOM обновиться
         setTimeout(() => {
-            setupReplyButtons();
+            // setupAddToListButtons();
+            // setupReplyButtons();
         }, 150);
     };
-
-    // === Ручное восстановление (для отладки) ===
+    
     window.restoreAnimePage = async (animeId) => {
-        log(`Ручное восстановление аниме ${animeId}`);
-        showLoader();
+        const startTime = performance.now();
+        log(`🔄 Ручное восстановление аниме ID: ${animeId}`);
         await renderPageForAnime(animeId);
+        const script = document.createElement('script');
+        script.src = '/packs/javascripts/application.js';
+        script.onload = () => log('📊 Графики инициализированы');
+        script.onerror = () => error('Не удалось загрузить скрипт для графиков.');
+        document.head.appendChild(script);
+        const endTime = performance.now();
+        const duration = (endTime - startTime).toFixed(2);
+        log(`✅ Ручное восстановление завершено за ${duration} мс (включая загрузку доп. скрипта).`);
     };
 
-    // === Автозапуск ===
     const init = () => {
         if (document.title.trim() !== '404') return;
         const match = location.pathname.match(/\/animes\/(\d+)/);
         if (!match) return;
-
+        
         showLoader();
-        renderPageForAnime(match[1]);
+        
+        const animeId = match[1];
+        renderPageForAnime(animeId);
     };
 
     init();
