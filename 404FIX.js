@@ -1,12 +1,13 @@
 // ==UserScript==
 // @name         Shikimori 404 Fix
 // @namespace    http://tampermonkey.net/
-// @version      2.1.0
+// @version      2.1.2
 // @description  Fetch anime info and render 404 pages.
 // @author       404FT
 // @updateURL    https://raw.githubusercontent.com/404FT/404FIX/refs/heads/main/404FIX.js
 // @downloadURL  https://raw.githubusercontent.com/404FT/404FIX/refs/heads/main/404FIX.js
 // @match        https://shikimori.one/*
+// @match        https://shiki.one/*
 // @grant        none
 // @license      MIT
 // ==/UserScript==
@@ -2623,3 +2624,4 @@
 
 	init();
 })();
+
