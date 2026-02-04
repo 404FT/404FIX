@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Shikimori 404 Fix
 // @namespace    http://tampermonkey.net/
-// @version      2.1.3
+// @version      2.2.0
 // @description  Fetch anime info and render 404 pages.
 // @author       404FT
 // @updateURL    https://raw.githubusercontent.com/404FT/404FIX/refs/heads/main/404FIX.js
@@ -115,7 +115,7 @@
     }`;
 
 	const ANIME_HTML_TEMPLATE = `
-    <!DOCTYPE html> <html data-color-mode="light"> <head> <meta charset="utf-8" /> <meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible" /> <meta content="width=device-width, initial-scale=1.0" name="viewport" /> <link href="/favicon.ico" rel="icon" type="image/x-icon" /> <link href="/favicons/favicon-16x16.png" rel="icon" sizes="16x16" type="image/png" /> <link href="/favicons/favicon-32x32.png" rel="icon" sizes="32x32" type="image/png" /> <link href="/favicons/favicon-96x96.png" rel="icon" sizes="96x96" type="image/png" /> <link href="/favicons/favicon-192x192.png" rel="icon" sizes="192x192" type="image/png" /> <link href="/favicons/manifest.json" rel="manifest" /> <link href="/favicons/apple-touch-icon-57x57.png" rel="apple-touch-icon" sizes="57x57" /> <link href="/favicons/apple-touch-icon-60x60.png" rel="apple-touch-icon" sizes="60x60" /> <link href="/favicons/apple-touch-icon-72x72.png" rel="apple-touch-icon" sizes="72x72" /> <link href="/favicons/apple-touch-icon-76x76.png" rel="apple-touch-icon" sizes="76x76" /> <link href="/favicons/apple-touch-icon-114x114.png" rel="apple-touch-icon" sizes="114x114" /> <link href="/favicons/apple-touch-icon-120x120.png" rel="apple-touch-icon" sizes="120x120" /> <link href="/favicons/apple-touch-icon-144x144.png" rel="apple-touch-icon" sizes="144x144" /> <link href="/favicons/apple-touch-icon-152x152.png" rel="apple-touch-icon" sizes="152x152" /> <link href="/favicons/apple-touch-icon-180x180.png" rel="apple-touch-icon" sizes="180x180" /> <link color="#123" href="/favicons/safari-pinned-tab.svg" rel="mask-icon" /> <meta content="#000000" name="theme-color" /> <meta content="#000000" name="msapplication-TileColor" /> <meta content="/favicons/ms-icon-144x144.png" name="msapplication-TileImage" /> <meta content="/favicons/browserconfig.xml" name="msapplication-config" /> <link href="/favicons/opera-icon-228x228.png" rel="icon" sizes="228x228" /> <link href="/search.xml" rel="search" title="{{DOMAIN_NAME}}" type="application/opensearchdescription+xml" /> <link href="https://fonts.googleapis.com" rel="preconnect" /> <link href="https://fonts.gstatic.com" rel="preconnect" /> <link href="https://fonts.googleapis.com" rel="preconnect" /> <link href="https://fonts.gstatic.com" rel="preconnect" /> <link href="https://dere.{{DOMAIN_NAME}}" rel="preconnect" /> <meta content="video.tv_show" property="og:type" /> <meta content="{{EN_NAME}}" property="og:title" /> <meta content="http://cdn.anime-recommend.ru/previews/{{MYANIMELIST_ID}}.jpg" property="og:image" /> <meta content="image/jpeg" property="og:image:type" /> <meta content="1200" property="og:image:width" /> <meta content="630" property="og:image:height" /> <meta content="{{SITE_NAME}}/animes/{{ID}}" property="og:url" /> <meta content="Шикимори" property="og:site_name" /> <meta content="1440" property="video:duration" /> <meta content="2024-03-22" property="video:release_date" /> <meta content="Приключения" property="video:tag" /> <meta content="Драма" property="video:tag" /> <meta content="Фэнтези" property="video:tag" /> <meta content="Сёнен" property="video:tag" /> <meta content="summary_large_image" property="twitter:card" /> <meta content="{{EN_NAME}}" name="twitter:title" /> <meta content="http://cdn.anime-recommend.ru/previews/{{MYANIMELIST_ID}}.jpg" name="twitter:image" /> <meta content="Шикимори" name="twitter:site" /> <title>{{EN_NAME}} / Аниме</title> <meta name="csrf-param" content="authenticity_token" /> <meta name="csrf-token" content="{{AUTHENTICITY_TOKEN}}" /> <script nomodule="" src="/outdated-browser.js"></script> {{FETCHED_CSS}} {{FETCHED_JS}} <script> document.addEventListener('DOMContentLoaded', function() { // для совместимости счётчиков с турболинками $(document).on('turbolinks:before-visit', function() { window.turbolinks_referer = location.href; console.log("turbolinks_referer was linked successfully!"); }); }); </script> </head> <body class="p-animes p-animes-show p-db_entries p-db_entries-show x1200" data-camo_url="https://camo-v3.{{DOMAIN_NAME}}/" data-env="production" data-faye="[&quot;/private-{{USER_ID}}&quot;]" data-faye_url="https://faye-v2.{{DOMAIN_NAME}}/" data-js_export_supervisor_keys="[&quot;user_rates&quot;,&quot;topics&quot;,&quot;comments&quot;,&quot;polls&quot;]" data-locale="ru" data-localized_genres="ru" data-localized_names="ru" data-server_time="2025-11-03T17:53:43+03:00" data-user="{&quot;id&quot;:{{USER_ID}},&quot;url&quot;:&quot;https://{{DOMAIN_NAME}}/{{USER_NICK}}&quot;,&quot;is_moderator&quot;:false,&quot;ignored_topics&quot;:[],&quot;ignored_users&quot;:[],&quot;is_day_registered&quot;:true,&quot;is_week_registered&quot;:true,&quot;is_comments_auto_collapsed&quot;:true,&quot;is_comments_auto_loaded&quot;:true}" id="animes_show"> <style id="custom_css" type="text/css"></style> <div id="outdated"></div> <header class="l-top_menu-v2"> <div class="menu-logo"> <a class="logo-container" href="{{SITE_NAME}}" title="Шикимори"> <div class="glyph"></div> <div class="logo"></div> </a> <div class="menu-dropdown main"> <span class="menu-icon trigger mobile" tabindex="-1"></span> <span class="submenu-triangle icon-{{CONTENT_TYPE}}" tabindex="0"> <span>{{SECTION_NAME}}</span> </span> <div class="submenu"> <div class="legend">База данных</div> <a class="icon-anime" href="/animes" tabindex="-1" title="Аниме">Аниме</a> <a class="icon-manga" href="/mangas" tabindex="-1" title="Манга">Манга</a> <a class="icon-ranobe" href="/ranobe" tabindex="-1" title="Ранобэ">Ранобэ</a> <div class="legend">Сообщество</div> <a class="icon-forum" href="/forum" tabindex="-1" title="Форум">Форум</a> <a class="icon-clubs" href="/clubs" tabindex="-1" title="Клубы">Клубы</a> <a class="icon-collections" href="/collections" tabindex="-1" title="Коллекции">Коллекции</a> <a class="icon-critiques" href="/forum/critiques" tabindex="-1" title="Рецензии">Рецензии</a> <a class="icon-articles" href="/articles" tabindex="-1" title="Статьи">Статьи</a> <a class="icon-users" href="/users" tabindex="-1" title="Пользователи">Пользователи</a> <div class="legend">Разное</div> <a class="icon-contests" href="/contests" tabindex="-1" title="Турниры">Турниры</a> <a class="icon-calendar" href="/ongoings" tabindex="-1" title="Календарь">Календарь</a> <div class="legend">Информация</div> <a class="icon-info" href="/about" tabindex="-1" title="О сайте">О сайте</a> <a class="icon-socials" href="/forum/site/270099-my-v-sotsialnyh-setyah" tabindex="-1" title="Мы в соц. сетях">Мы в соц. сетях</a> <a class="icon-moderation" href="/moderations" tabindex="-1" title="Модерация">Модерация</a> </div> </div> </div> <div class="menu-icon search mobile"></div> <div class="global-search" data-autocomplete_anime_url="/animes/autocomplete/v2" data-autocomplete_character_url="/characters/autocomplete/v2" data-autocomplete_manga_url="/mangas/autocomplete/v2" data-autocomplete_person_url="/people/autocomplete/v2" data-autocomplete_ranobe_url="/ranobe/autocomplete/v2" data-default-mode="{{TYPE}}" data-search_anime_url="/animes" data-search_character_url="/characters" data-search_manga_url="/mangas" data-search_person_url="/people" data-search_ranobe_url="/ranobe"> <label class="field"> <input placeholder="Поиск..." type="text" /> <span class="clear" tabindex="-1"></span> <span class="hotkey-marker"></span> <span class="search-marker"></span> </label> <div class="search-results"> <div class="inner"></div> </div> </div> <a class="menu-icon forum desktop" href="/forum" title="Форум"></a> <a class="menu-icon contest" data-count="2" href="/contests/current" title="Текущий турнир"></a> <div class="menu-dropdown profile"> <span tabindex="0"> <a class="submenu-triangle" href="/{{USER_NICK}}"> <img alt="{{USER_NICK}}" src="{{USER_AVATAR_X48}}" srcset="{{USER_AVATAR_X80}} 2x" title="{{USER_NICK}}" /> <span class="nickname">{{USER_NICK}}</span> </a> </span> <div class="submenu"> <div class="legend">Аккаунт</div> <a class="icon-profile" href="/{{USER_NICK}}" tabindex="-1" title="Профиль"> <span class="text">Профиль</span> </a> <a class="icon-anime_list" href="/{{USER_NICK}}/list/anime" tabindex="-1" title="Список аниме"> <span class="text">Список аниме</span> </a> <a class="icon-manga_list" href="/{{USER_NICK}}/list/manga" tabindex="-1" title="Список манги"> <span class="text">Список манги</span> </a> <a class="icon-mail" href="/{{USER_NICK}}/dialogs" tabindex="-1" title="Почта"> <span class="text">Почта</span> </a> <a class="icon-achievements" href="/{{USER_NICK}}/achievements" tabindex="-1" title="Достижения"> <span class="text">Достижения</span> </a> <a class="icon-clubs" href="/{{USER_NICK}}/clubs" tabindex="-1" title="Клубы"> <span class="text">Клубы</span> </a> <a class="icon-settings" href="/{{USER_NICK}}/edit/account" tabindex="-1" title="Настройки"> <span class="text">Настройки</span> </a> <div class="legend">Сайт</div> <a class="icon-site_rules" href="/forum/site/588641-pravila-sayta-v2" tabindex="-1" title="Правила сайта"> <span class="text">Правила сайта</span> </a> <a class="icon-faq" href="/clubs/1093-faq-chasto-zadavaemye-voprosy" tabindex="-1" title="FAQ"> <span class="text">FAQ</span> </a> <a class="icon-sign_out" data-method="delete" href="/users/sign_out" tabindex="-1">Выход</a> </div> </div> </header> <section class="l-page" itemscope="" itemtype="http://schema.org/Movie"> <div> <div class="menu-toggler"> <div class="toggler"></div> </div> <header class="head"> <meta content="Sousou no Frieren" itemprop="name" /> <h1>{{RU_NAME}} <span class="b-separator inline">/</span> {{EN_NAME}} </h1> <div class="b-breadcrumbs" itemscope="" itemtype="https://schema.org/BreadcrumbList"> <span itemprop="itemListElement" itemscope="" itemtype="https://schema.org/ListItem"> <a class="b-link" href="/animes" itemprop="item" title="Аниме"> <span itemprop="name">Аниме</span> </a> <meta content="0" itemprop="position" /> </span> <span itemprop="itemListElement" itemscope="" itemtype="https://schema.org/ListItem"> <a class="b-link" href="/animes/kind/tv" itemprop="item" title="Сериалы"> <span itemprop="name">Сериалы</span> </a> <meta content="1" itemprop="position" /> </span> <span itemprop="itemListElement" itemscope="" itemtype="https://schema.org/ListItem"> <a class="b-link" href="/animes?genre=27-Shounen" itemprop="item" title="Сёнен"> <span itemprop="name">Сёнен</span> </a> <meta content="2" itemprop="position" /> </span> </div> </header> <div class="menu-slide-outer x199"> <div class="menu-slide-inner"> <div class="l-content"> <div class="block"> <meta content="/animes/{{ID}}" itemprop="url" /> <meta content="Sousou no Frieren" itemprop="headline" /> <meta content="Провожающая в последний путь Фрирен" itemprop="alternativeHeadline" /> <meta content="2023-09-29" itemprop="dateCreated" /> <div class="b-db_entry"> <div class="c-image"> <div class="cc block"> <div class="c-poster"> <div class="b-db_entry-poster b-image unprocessed" data-href="{{POSTER}}" data-poster_id="0"> <meta content="{{POSTER}}" itemprop="image" /> <picture> <source srcset="{{POSTER}} 1x, {{POSTER}} 2x" type="image/webp" /> <img alt="{{RU_NAME}}" height="318" src="{{POSTER}}" srcset="{{POSTER}} 2x" width="225" /> </picture> <span class="marker"> <span class="marker-text">705x995</span> </span> </div> </div> <div class="c-actions"> <div class="b-subposter-actions"> <a class="b-subposter-action new_comment b-tooltipped unprocessed to-process" data-direction="top" data-dynamic="day_registered" data-text="Комментировать" title="Комментировать"></a> <a class="b-subposter-action new_review b-tooltipped unprocessed to-process" data-direction="top" data-dynamic="day_registered" data-text="Написать отзыв" href="/animes/{{ID}}/reviews/new" title="Написать отзыв"></a> <a class="b-subposter-action new_critique b-tooltipped unprocessed to-process" data-direction="top" data-dynamic="week_registered" data-text="Написать рецензию" href="/animes/{{ID}}/critiques/new?critique%5Btarget_id%5D={{ID}}&amp;critique%5Btarget_type%5D=Anime&amp;critique%5Buser_id%5D=225227" title="Написать рецензию"></a> <a class="b-subposter-action fav-add b-tooltipped unprocessed to-process" data-add_text="Добавить в избранное" data-direction="top" data-dynamic="authorized" data-kind="" data-remote="true" data-remove_text="Удалить из избранного" data-type="json" href="/api/favorites/Anime/{{ID}}"></a> <a class="b-subposter-action edit b-tooltipped unprocessed to-process" data-direction="top" data-dynamic="authorized" data-text="Редактировать" href="/animes/{{ID}}/edit" title="Редактировать"></a> </div> </div> </div> <div class="b-user_rate to-process anime-{{ID}}" data-dynamic="user_rate" data-entry="{&quot;id&quot;:{{ID}},&quot;episodes&quot;:28,&quot;chapters&quot;:null,&quot;volumes&quot;:null}" data-extended="true" data-model="{&quot;id&quot;:null,&quot;user_id&quot;:null,&quot;target_id&quot;:{{ID}},&quot;score&quot;:0,&quot;status&quot;:&quot;planned&quot;,&quot;episodes&quot;:0,&quot;created_at&quot;:null,&quot;updated_at&quot;:null,&quot;target_type&quot;:&quot;Anime&quot;,&quot;volumes&quot;:0,&quot;chapters&quot;:0,&quot;text&quot;:null,&quot;rewatches&quot;:0}" data-target_id="{{ID}}" data-target_type="Anime" data-track_user_rate="user_rate:anime:{{ID}}"></div> </div> <div class="c-about"> <div class="cc"> <div class="c-info-left"> <div class="subheadline">Информация</div> <div class="block"> <div class="b-entry-info"> <div class='line-container'> <div class='line'> <div class='key'>Тип:</div> <div class='value'>{{TYPE}}</div> </div> </div> <div class='line-container'> <div class='line'> <div class='key'>{{COUNT_LABEL}}:</div> <div class='value'>{{COUNT_VALUE}}</div> </div> </div> <div class='line-container'> <div class='line'> {{DURATION_BLOCK}} </div> </div> <div class='line-container'> <div class='line'> <div class='key'>Статус:</div> <div class='value'> <span class="b-anime_status_tag released" data-text="{{STATUS}}"></span> &nbsp; <span class="b-tooltipped dotted mobile unprocessed" data-direction="right" title="С 29 сентября 2023 г. по 22 марта 2024 г.">в 2023-2024 гг.</span> </div> </div> </div> <div class='line-container'> <div class='line'> {{GENRES}} </div> </div> <div class='line-container'> <div class='line'> <div class='key'>Рейтинг:</div> <div class='value'> <span class="b-tooltipped dotted mobile unprocessed" data-direction="right" title="{{RATING_TOOLTIP}}">{{RATING}}</span> </div> </div> </div> <div class='line-container'> <div class='line'> <div class='key'>Первоисточник:</div> <div class='value'>{{SOURCE}}</div> </div> </div> <div class='line-container'> <div class='line'> <div class='key'>Альтернативные названия:</div> <div class='value'> <span class="other-names to-process" data-clickloaded-url="/animes/{{ID}}/other_names" data-dynamic="clickloaded"> <span>···</span> </span> </div> </div> </div> <div class="additional-links"> <div class="line-container"> <div class="key">У аниме:</div> <span class="linkeable" data-href="/animes/{{ID}}/critiques">--- рецензия</span> <span class="linkeable" data-href="/animes/{{ID}}/reviews">--- отзывов</span> <span class="linkeable" data-href="/forum/animanga/anime-{{ID}}/{{TOPIC_ID}}-obsuzhdenie-anime">{{COMMENTS_COUNT}} комментариев</span> <span class="linkeable" data-href="/animes/{{ID}}/coub">---</span> </div> </div> </div> </div> </div> <div class="c-info-right"> <div class="block" itemprop="aggregateRating" itemscope itemtype="http://schema.org/AggregateRating"> <div class="subheadline m5">Рейтинг</div> <div class="scores"> <meta content="10" itemprop="bestRating" /> <meta content="{{SCORE}}" itemprop="ratingValue" /> <meta content="{{RATING_COUNT}}" itemprop="ratingCount" /> <div class="b-rate"> <div class="stars-container"> <div class="hoverable-trigger"></div> <div class="stars score score-{{SCORE_ROUND}}"></div> <div class="stars hover"></div> <div class="stars background"></div> </div> <div class="text-score"> <div class="score-value score-{{SCORE_ROUND}}">{{SCORE}}</div> <div class="score-notice">{{RATING_NOTICE}}</div> </div> </div> </div> </div> <div class="block contest_winners"> </div> <style> .studio-list { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; } </style> <div class="block"> <div class="subheadline">{{ORG_LABEL}}</div> <div class="studio-list"> {{ORGANIZATIONS}} </div> </div> </div> </div> </div> <div class="c-description"> <div class="subheadline m5">Описание</div> <div class="block"> <div class="b-lang_trigger" data-eng="eng" data-rus="рус"> <span>eng</span> </div> <div class="description-other" style="display: none"> <div class="text"> <div class="b-text_with_paragraphs">В разработке.</div> </div> <div class="b-source"> <div class="source"> <div class="key">Источник:</div> <div class="val"> <a class='b-link' href="http://myanimelist.net/anime/{{MYANIMELIST_ID}}">myanimelist.net</a> </div> </div> </div> </div> <div class="description-current"> <div class="text" itemprop="description"> <div class="b-text_with_paragraphs">{{DESCRIPTION}}</div> </div> <div class="b-source"> <div class="contributors"> <div class="key">Автор:</div> <div class="b-user16"> <span>Неизвестно</span> </div> </div> </div> </div> </div> </div> </div> <div class="cc-related-authors"> <div class="c-column block_m"> <div class="b-options-floated mobile-phone"> <span class="linkeable" data-href="/animes/{{ID}}/related">Напрямую</span> <span class="linkeable" data-href="/animes/{{ID}}/chronology">Хронология</span> <span class="linkeable" data-href="/animes/{{ID}}/franchise">Франшиза</span> </div> <div class="subheadline">Связанное</div> {{RELATED_CONTENT}} </div> <div class="c-column c-authors block_m"> <div class="subheadline"> <span class="linkeable" data-href="/animes/{{ID}}/staff">Авторы</span> </div> {{STAFF}} </div> </div> <div class="cc-characters"> <div class="c-characters m0"> <div class="subheadline"> <span class="linkeable" data-href="/animes/{{ID}}/characters">Главные герои</span> </div> {{MAIN_CHARACTERS}} </div> {{SUPPORTING_CHARACTERS}} </div> {{SCREENSHOTS_AND_VIDEOS}} <div class="block"> <div class="subheadline"> <span class="linkeable" data-href="/animes/{{ID}}/similar">Похожее</span> </div> {{SIMILAR_ANIMES}} </div> <div class="subheadline"> <a href="/forum/animanga/anime-{{ID}}/{{TOPIC_ID}}-obsuzhdenie-anime" title="Все комментарии"> Комментарии <div class="count">{{COMMENTS_COUNT}}</div> </a> </div> </div> <div class="to-process" data-dynamic="topic" data-faye="[&quot;/topic-{{TOPIC_ID}}&quot;]"> <div class="b-comments"> <div class="comments-hider">Скрыть {{COMMENTS_COUNT}} комментариев</div> <div class="comments-expander">Показать {{COMMENTS_COUNT}} комментариев</div> <div class="comments-collapser hidden">свернуть</div> <div class="comments-loader to-process" data-clickloaded-url-template="/comments/fetch/{{COMMENTS_ANCHOR}}/Topic/{{TOPIC_ID}}/SKIP/10" data-count="37726" data-dynamic="clickloaded" data-limit="10" data-skip="0">Загрузить ещё 10 из {{COMMENTS_COUNT}} комментариев</div> </div> </div> <div class="editor-container"> <div class="b-options-floated"> <span class="action return-to-reply">назад</span> </div> <div class="subheadline">Твой комментарий</div> <form class="simple_form b-form new_comment" data-type="json" novalidate="novalidate" action="/api/comments" accept-charset="UTF-8" data-remote="true" method="post" > <input type="hidden" name="authenticity_token" value="{{AUTHENTICITY_TOKEN}}" autocomplete="off" /> <input name="frontend" type="hidden" value="true" /> <div class="b-input hidden comment_commentable_id"> <input class="hidden" autocomplete="off" type="hidden" value="{{TOPIC_ID}}" name="comment[commentable_id]" /> </div> <div class="b-input hidden comment_commentable_type"> <input class="hidden" autocomplete="off" type="hidden" value="Topic" name="comment[commentable_type]" /> </div> <div class="b-input hidden comment_is_offtopic"> <input class="hidden" autocomplete="off" type="hidden" value="false" name="comment[is_offtopic]" /> </div> <div class="b-shiki_editor shiki_editor-selector" data-dynamic="shiki_editor" data-field_name="comment[body]" > <div class="controls"> <aside class="buttons"> <div class="editor-controls"> <span class="editor-bold b-tooltipped" data-direction="top" original-title="Жирный" ></span> <span class="editor-italic b-tooltipped" data-direction="top" original-title="Курсив" ></span> <span class="editor-underline b-tooltipped" data-direction="top" original-title="Подчёркнутый" ></span> <span class="editor-strike b-tooltipped" data-direction="top" original-title="Зачёркнутый" ></span> <span class="editor-link b-tooltipped" data-direction="top" original-title="Ссылка" ></span> <span class="editor-image b-tooltipped" data-direction="top" original-title="Ссылка на картинку" ></span> <span class="editor-quote b-tooltipped" data-direction="top" original-title="Цитата" ></span> <span class="editor-spoiler b-tooltipped" data-direction="top" original-title="Спойлер" ></span> <label class="editor-file b-tooltipped" data-direction="top" original-title="Загрузить изображение" > <input type="file" /> </label> <span class="editor-smiley b-tooltipped" data-direction="top" original-title="Смайлик" ></span> </div> </aside> <aside class="markers"> <div class="b-offtopic_marker active off" data-text="оффтоп"></div> </aside> </div> <div class="smileys hidden" data-href="/comments/smileys" > <div class="ajax-loading" title="Загрузка..."></div> </div> <div class="links hidden hidden-block"> <label> <input type="radio" name="link_type" value="url" data-placeholder="Укажи адрес страницы..." /> <span>ссылка</span> </label> <label> <input type="radio" name="link_type" value="anime" data-placeholder="Укажи название аниме..." data-autocomplete="/animes/autocomplete" /> <span>аниме</span> </label> <label> <input type="radio" name="link_type" value="manga" data-placeholder="Укажи название манги..." data-autocomplete="/mangas/autocomplete" /> <span>манга</span> </label> <label> <input type="radio" name="link_type" value="ranobe" data-placeholder="Укажи название ранобэ..." data-autocomplete="/ranobe/autocomplete" /> <span>ранобэ</span> </label> <label> <input type="radio" name="link_type" value="character" data-placeholder="Укажи имя персонажа..." data-autocomplete="/characters/autocomplete" /> <span>персонаж</span> </label> <label> <input type="radio" name="link_type" value="person" data-placeholder="Укажи имя человека..." data-autocomplete="/people/autocomplete" /> <span>человек</span> </label> <div class="input-container"> <input type="text" name="link_value" value="" class="link-value ac_input" autocomplete="off" /> <div class="b-button ok" data-type="links">OK</div> </div> </div> <div class="images hidden hidden-block"> <span>Вставка изображения:</span> <div class="input-container"> <input type="text" name="image_value" value="" class="link-value" placeholder="Укажи адрес картинки..." /> <div class="b-button ok" data-type="images">OK</div> </div> </div> <div class="quotes hidden hidden-block"> <span>Цитирование пользователя:</span> <div class="input-container"> <input type="text" name="quote_value" value="" class="link-value ac_input" placeholder="Укажи имя пользователя..." data-autocomplete="/users/autocomplete" autocomplete="off" /> <div class="b-button ok" data-type="quotes">OK</div> </div> </div> <div class="b-upload_progress"> <div class="bar"></div> </div> <div class="body"> <div class="editor"> <div class="b-input text required comment_body"> <label class="text required control-label"> <abbr title="Обязательное поле">*</abbr> Текст </label> <textarea class="text required editor-area pastable" placeholder="Текст комментария" tabindex="0" data-upload_url="/api/user_images?linked_type=Comment" data-item_type="comment" name="comment[body]" ></textarea> </div> </div> <div class="preview"></div> </div> <footer> <input type="submit" name="commit" value="Написать" id="submit_907900.5100256373" class="btn-primary btn-submit btn" data-disable-with="Отправка…" autocomplete="off" tabindex="0" /> <div class="unpreview" tabindex="0">Вернуться к редактированию</div> <div class="b-button preview" data-preview_url="/comments/preview" tabindex="0" > Предпросмотр </div> <div class="hide">Скрыть</div> <div class="about-bb_codes"> <a href="/bb_codes" target="_blaNK" >примеры BBCode</a > </div> </footer> </div> </form> </div> </div> <aside class="l-menu"> <div class="b-animes-menu"> {{USER_RATINGS}} {{USER_STATUSES}} <div class="block"> <div class="subheadline m5">У друзей</div> </div> <div class="b-favoured"> <div class="subheadline"> <div class="linkeable" data-href="/animes/{{ID}}/favoured"> В избранном <div class="count">---</div> </div> </div> <div class="cc"> <div class="b-user c-column avatar"> <a class="avatar" href="/forum/site/610897-shikimori-404-fix" style="display: block; padding: 10px; text-align: center; color: #0066cc; text-decoration: none; overflow-wrap: anywhere;"> . </a> </div> </div> </div> <div class="block"> <div class="subheadline"> <div class="linkeable" data-href="/animes/{{ID}}/clubs"> В клубах <div class="count">---</div> </div> </div> <div class="b-clubs one-line"> <a href="/forum/site/610897-shikimori-404-fix" style="display: block; padding: 10px; text-align: center; color: #0066cc; text-decoration: none; overflow-wrap: anywhere;"> Если знаете как вернуть данную информацию напишите мне в топик скрипта на сайте </a> </div> </div> <div class="block"> <div class="subheadline m5"> <div class="linkeable" data-href="/animes/{{ID}}/collections"> В коллекциях <div class="count">---</div> </div> </div> <div class="block"> <div class="b-menu-line"> <span> <a class="b-link" href="/forum/site/610897-shikimori-404-fix" style="display: block; padding: 10px; text-align: center; color: #0066cc; text-decoration: none; overflow-wrap: anywhere;"> Если знаете как вернуть данную информацию напишите мне в топик скрипта на сайте </a> </span> </div> </div> </div> {{NEWS}} <div class="block"> <div class="subheadline m8">На других сайтах</div> {{EXTERNAL_LINKS}} </div> <div class="block"> <div class="subheadline m5">Субтитры</div> {{SUBTITLES}} </div> <div class="block"> <div class="subheadline m5">Озвучка</div> {{DUBBING}} </div> </div> </aside> </div> </div> </div> <footer class="l-footer"> <div class="copyright"> &copy; {{DOMAIN_NAME}}&nbsp; <span class="date">2011-2025</span> </div> <div class="links"> <a class="terms" href="/terms" tabindex="-1" title="Соглашение">Соглашение</a> <a class="for-right-holders" href="/for_right_holders" tabindex="-1" title="Для правообладателей">Для правообладателей</a> <a class="sitemap" href="/sitemap" tabindex="-1" title="Карта сайта">Карта сайта</a> </div> </footer> </section> <div class="b-shade"></div> <div class="b-to-top"> <div class="slide"></div> <div class="arrow"></div> </div> <div class="b-feedback"> <div class="hover-activator"></div> <span class="marker-positioner" data-action="/feedback" data-remote="true" data-type="html"> <div class="marker-text" data-text="Сообщить об ошибке"></div> </span> </div> <script id="js_export"> {{JS_EXPORT}} </script> <script> //<![CDATA[ window.gon={};gon.is_favoured=false; //]]> </script> </body> </html>
+    <!DOCTYPE html> <html data-color-mode="light"> <head> <meta charset="utf-8" /> <meta content="IE=edge,chrome=1" http-equiv="X-UA-Compatible" /> <meta content="width=device-width, initial-scale=1.0" name="viewport" /> <link href="/favicon.ico" rel="icon" type="image/x-icon" /> <link href="/favicons/favicon-16x16.png" rel="icon" sizes="16x16" type="image/png" /> <link href="/favicons/favicon-32x32.png" rel="icon" sizes="32x32" type="image/png" /> <link href="/favicons/favicon-96x96.png" rel="icon" sizes="96x96" type="image/png" /> <link href="/favicons/favicon-192x192.png" rel="icon" sizes="192x192" type="image/png" /> <link href="/favicons/manifest.json" rel="manifest" /> <link href="/favicons/apple-touch-icon-57x57.png" rel="apple-touch-icon" sizes="57x57" /> <link href="/favicons/apple-touch-icon-60x60.png" rel="apple-touch-icon" sizes="60x60" /> <link href="/favicons/apple-touch-icon-72x72.png" rel="apple-touch-icon" sizes="72x72" /> <link href="/favicons/apple-touch-icon-76x76.png" rel="apple-touch-icon" sizes="76x76" /> <link href="/favicons/apple-touch-icon-114x114.png" rel="apple-touch-icon" sizes="114x114" /> <link href="/favicons/apple-touch-icon-120x120.png" rel="apple-touch-icon" sizes="120x120" /> <link href="/favicons/apple-touch-icon-144x144.png" rel="apple-touch-icon" sizes="144x144" /> <link href="/favicons/apple-touch-icon-152x152.png" rel="apple-touch-icon" sizes="152x152" /> <link href="/favicons/apple-touch-icon-180x180.png" rel="apple-touch-icon" sizes="180x180" /> <link color="#123" href="/favicons/safari-pinned-tab.svg" rel="mask-icon" /> <meta content="#000000" name="theme-color" /> <meta content="#000000" name="msapplication-TileColor" /> <meta content="/favicons/ms-icon-144x144.png" name="msapplication-TileImage" /> <meta content="/favicons/browserconfig.xml" name="msapplication-config" /> <link href="/favicons/opera-icon-228x228.png" rel="icon" sizes="228x228" /> <link href="/search.xml" rel="search" title="{{DOMAIN_NAME}}" type="application/opensearchdescription+xml" /> <link href="https://fonts.googleapis.com" rel="preconnect" /> <link href="https://fonts.gstatic.com" rel="preconnect" /> <link href="https://fonts.googleapis.com" rel="preconnect" /> <link href="https://fonts.gstatic.com" rel="preconnect" /> <link href="https://dere.{{DOMAIN_NAME}}" rel="preconnect" /> <meta content="video.tv_show" property="og:type" /> <meta content="{{EN_NAME}}" property="og:title" /> <meta content="http://cdn.anime-recommend.ru/previews/{{MYANIMELIST_ID}}.jpg" property="og:image" /> <meta content="image/jpeg" property="og:image:type" /> <meta content="1200" property="og:image:width" /> <meta content="630" property="og:image:height" /> <meta content="{{SITE_NAME}}/animes/{{ID}}" property="og:url" /> <meta content="Шикимори" property="og:site_name" /> <meta content="1440" property="video:duration" /> <meta content="2024-03-22" property="video:release_date" /> <meta content="Приключения" property="video:tag" /> <meta content="Драма" property="video:tag" /> <meta content="Фэнтези" property="video:tag" /> <meta content="Сёнен" property="video:tag" /> <meta content="summary_large_image" property="twitter:card" /> <meta content="{{EN_NAME}}" name="twitter:title" /> <meta content="http://cdn.anime-recommend.ru/previews/{{MYANIMELIST_ID}}.jpg" name="twitter:image" /> <meta content="Шикимори" name="twitter:site" /> <title>{{EN_NAME}} / Аниме</title> <meta name="csrf-param" content="authenticity_token" /> <meta name="csrf-token" content="{{AUTHENTICITY_TOKEN}}" /> <script nomodule="" src="/outdated-browser.js"></script> {{FETCHED_CSS}} {{FETCHED_JS}} <script> document.addEventListener('DOMContentLoaded', function() { // для совместимости счётчиков с турболинками $(document).on('turbolinks:before-visit', function() { window.turbolinks_referer = location.href; console.log("turbolinks_referer was linked successfully!"); }); }); </script> </head> <body class="p-animes p-animes-show p-db_entries p-db_entries-show x1200" data-camo_url="https://camo-v3.{{DOMAIN_NAME}}/" data-env="production" data-faye="[&quot;/private-{{USER_ID}}&quot;]" data-faye_url="https://faye-v2.{{DOMAIN_NAME}}/" data-js_export_supervisor_keys="[&quot;user_rates&quot;,&quot;topics&quot;,&quot;comments&quot;,&quot;polls&quot;]" data-locale="ru" data-localized_genres="ru" data-localized_names="ru" data-server_time="2025-11-03T17:53:43+03:00" data-user="{&quot;id&quot;:{{USER_ID}},&quot;url&quot;:&quot;https://{{DOMAIN_NAME}}/{{USER_NICK}}&quot;,&quot;is_moderator&quot;:false,&quot;ignored_topics&quot;:[],&quot;ignored_users&quot;:[],&quot;is_day_registered&quot;:true,&quot;is_week_registered&quot;:true,&quot;is_comments_auto_collapsed&quot;:true,&quot;is_comments_auto_loaded&quot;:true}" id="animes_show"> <style id="custom_css" type="text/css"></style> <div id="outdated"></div> <header class="l-top_menu-v2"> <div class="menu-logo"> <a class="logo-container" href="{{SITE_NAME}}" title="Шикимори"> <div class="glyph"></div> <div class="logo"></div> </a> <div class="menu-dropdown main"> <span class="menu-icon trigger mobile" tabindex="-1"></span> <span class="submenu-triangle icon-{{CONTENT_TYPE}}" tabindex="0"> <span>{{SECTION_NAME}}</span> </span> <div class="submenu"> <div class="legend">База данных</div> <a class="icon-anime" href="/animes" tabindex="-1" title="Аниме">Аниме</a> <a class="icon-manga" href="/mangas" tabindex="-1" title="Манга">Манга</a> <a class="icon-ranobe" href="/ranobe" tabindex="-1" title="Ранобэ">Ранобэ</a> <div class="legend">Сообщество</div> <a class="icon-forum" href="/forum" tabindex="-1" title="Форум">Форум</a> <a class="icon-clubs" href="/clubs" tabindex="-1" title="Клубы">Клубы</a> <a class="icon-collections" href="/collections" tabindex="-1" title="Коллекции">Коллекции</a> <a class="icon-critiques" href="/forum/critiques" tabindex="-1" title="Рецензии">Рецензии</a> <a class="icon-articles" href="/articles" tabindex="-1" title="Статьи">Статьи</a> <a class="icon-users" href="/users" tabindex="-1" title="Пользователи">Пользователи</a> <div class="legend">Разное</div> <a class="icon-contests" href="/contests" tabindex="-1" title="Турниры">Турниры</a> <a class="icon-calendar" href="/ongoings" tabindex="-1" title="Календарь">Календарь</a> <div class="legend">Информация</div> <a class="icon-info" href="/about" tabindex="-1" title="О сайте">О сайте</a> <a class="icon-socials" href="/forum/site/270099-my-v-sotsialnyh-setyah" tabindex="-1" title="Мы в соц. сетях">Мы в соц. сетях</a> <a class="icon-moderation" href="/moderations" tabindex="-1" title="Модерация">Модерация</a> </div> </div> </div> <div class="menu-icon search mobile"></div> <div class="global-search" data-autocomplete_anime_url="/animes/autocomplete/v2" data-autocomplete_character_url="/characters/autocomplete/v2" data-autocomplete_manga_url="/mangas/autocomplete/v2" data-autocomplete_person_url="/people/autocomplete/v2" data-autocomplete_ranobe_url="/ranobe/autocomplete/v2" data-default-mode="{{CONTENT_TYPE}}" data-search_anime_url="/animes" data-search_character_url="/characters" data-search_manga_url="/mangas" data-search_person_url="/people" data-search_ranobe_url="/ranobe"> <label class="field"> <input placeholder="Поиск..." type="text" /> <span class="clear" tabindex="-1"></span> <span class="hotkey-marker"></span> <span class="search-marker"></span> </label> <div class="search-results"> <div class="inner"></div> </div> </div> <a class="menu-icon forum desktop" href="/forum" title="Форум"></a> <a class="menu-icon contest" data-count="2" href="/contests/current" title="Текущий турнир"></a> <div class="menu-dropdown profile"> <span tabindex="0"> <a class="submenu-triangle" href="/{{USER_NICK}}"> <img alt="{{USER_NICK}}" src="{{USER_AVATAR_X48}}" srcset="{{USER_AVATAR_X80}} 2x" title="{{USER_NICK}}" /> <span class="nickname">{{USER_NICK}}</span> </a> </span> <div class="submenu"> <div class="legend">Аккаунт</div> <a class="icon-profile" href="/{{USER_NICK}}" tabindex="-1" title="Профиль"> <span class="text">Профиль</span> </a> <a class="icon-anime_list" href="/{{USER_NICK}}/list/anime" tabindex="-1" title="Список аниме"> <span class="text">Список аниме</span> </a> <a class="icon-manga_list" href="/{{USER_NICK}}/list/manga" tabindex="-1" title="Список манги"> <span class="text">Список манги</span> </a> <a class="icon-mail" href="/{{USER_NICK}}/dialogs" tabindex="-1" title="Почта"> <span class="text">Почта</span> </a> <a class="icon-achievements" href="/{{USER_NICK}}/achievements" tabindex="-1" title="Достижения"> <span class="text">Достижения</span> </a> <a class="icon-clubs" href="/{{USER_NICK}}/clubs" tabindex="-1" title="Клубы"> <span class="text">Клубы</span> </a> <a class="icon-settings" href="/{{USER_NICK}}/edit/account" tabindex="-1" title="Настройки"> <span class="text">Настройки</span> </a> <div class="legend">Сайт</div> <a class="icon-site_rules" href="/forum/site/588641-pravila-sayta-v2" tabindex="-1" title="Правила сайта"> <span class="text">Правила сайта</span> </a> <a class="icon-faq" href="/clubs/1093-faq-chasto-zadavaemye-voprosy" tabindex="-1" title="FAQ"> <span class="text">FAQ</span> </a> <a class="icon-sign_out" data-method="delete" href="/users/sign_out" tabindex="-1">Выход</a> </div> </div> </header> <section class="l-page" itemscope="" itemtype="http://schema.org/Movie"> <div> <div class="menu-toggler"> <div class="toggler"></div> </div> <header class="head"> <meta content="Sousou no Frieren" itemprop="name" /> <h1>{{RU_NAME}} <span class="b-separator inline">/</span> {{EN_NAME}} </h1> <div class="b-breadcrumbs" itemscope="" itemtype="https://schema.org/BreadcrumbList"> <span itemprop="itemListElement" itemscope="" itemtype="https://schema.org/ListItem"> <a class="b-link" href="/animes" itemprop="item" title="Аниме"> <span itemprop="name">Аниме</span> </a> <meta content="0" itemprop="position" /> </span> <span itemprop="itemListElement" itemscope="" itemtype="https://schema.org/ListItem"> <a class="b-link" href="/animes/kind/tv" itemprop="item" title="Сериалы"> <span itemprop="name">Сериалы</span> </a> <meta content="1" itemprop="position" /> </span> <span itemprop="itemListElement" itemscope="" itemtype="https://schema.org/ListItem"> <a class="b-link" href="/animes?genre=27-Shounen" itemprop="item" title="Сёнен"> <span itemprop="name">Сёнен</span> </a> <meta content="2" itemprop="position" /> </span> </div> </header> <div class="menu-slide-outer x199"> <div class="menu-slide-inner"> <div class="l-content"> <div class="block"> <meta content="/animes/{{ID}}" itemprop="url" /> <meta content="Sousou no Frieren" itemprop="headline" /> <meta content="Провожающая в последний путь Фрирен" itemprop="alternativeHeadline" /> <meta content="2023-09-29" itemprop="dateCreated" /> <div class="b-db_entry"> <div class="c-image"> <div class="cc block"> <div class="c-poster"> <div class="b-db_entry-poster b-image unprocessed" data-href="{{POSTER}}" data-poster_id="0"> <meta content="{{POSTER}}" itemprop="image" /> <picture> <source srcset="{{POSTER}} 1x, {{POSTER}} 2x" type="image/webp" /> <img alt="{{RU_NAME}}" height="318" src="{{POSTER}}" srcset="{{POSTER}} 2x" width="225" /> </picture> <span class="marker"> <span class="marker-text">705x995</span> </span> </div> </div> <div class="c-actions"> <div class="b-subposter-actions"> <a class="b-subposter-action new_comment b-tooltipped unprocessed to-process" data-direction="top" data-dynamic="day_registered" data-text="Комментировать" title="Комментировать"></a> <a class="b-subposter-action new_review b-tooltipped unprocessed to-process" data-direction="top" data-dynamic="day_registered" data-text="Написать отзыв" href="/animes/{{ID}}/reviews/new" title="Написать отзыв"></a> <a class="b-subposter-action new_critique b-tooltipped unprocessed to-process" data-direction="top" data-dynamic="week_registered" data-text="Написать рецензию" href="/{{CONTENT_TYPE_M}}/{{ID}}/critiques/new?critique%5Btarget_id%5D={{ID}}&amp;critique%5Btarget_type%5D={{CONTENT_TYPE_UP}}&amp;critique%5Buser_id%5D={{USER_ID}}" title="Написать рецензию"></a> <a class="b-subposter-action fav-add b-tooltipped unprocessed to-process" data-add_text="Добавить в избранное" data-direction="top" data-dynamic="authorized" data-kind="" data-remote="true" data-remove_text="Удалить из избранного" data-type="json" href="/api/favorites/{{CONTENT_TYPE_UP}}/{{ID}}"></a> <a class="b-subposter-action edit b-tooltipped unprocessed to-process" data-direction="top" data-dynamic="authorized" data-text="Редактировать" href="/{{CONTENT_TYPE_M}}/{{ID}}/edit" title="Редактировать"></a> </div> </div> </div> <div class="b-user_rate to-process {{CONTENT_TYPE}}-{{ID}}" data-dynamic="user_rate" data-entry="{&quot;id&quot;:{{ID}},&quot;episodes&quot;:28,&quot;chapters&quot;:null,&quot;volumes&quot;:null}" data-extended="true" data-model="{&quot;id&quot;:null,&quot;user_id&quot;:null,&quot;target_id&quot;:{{ID}},&quot;score&quot;:0,&quot;status&quot;:&quot;planned&quot;,&quot;episodes&quot;:0,&quot;created_at&quot;:null,&quot;updated_at&quot;:null,&quot;target_type&quot;:&quot;{{CONTENT_TYPE_UP}}&quot;,&quot;volumes&quot;:0,&quot;chapters&quot;:0,&quot;text&quot;:null,&quot;rewatches&quot;:0}" data-target_id="{{ID}}" data-target_type="{{CONTENT_TYPE_UP}}" data-track_user_rate="user_rate:anime:{{ID}}"></div> </div> <div class="c-about"> <div class="cc"> <div class="c-info-left"> <div class="subheadline">Информация</div> <div class="block"> <div class="b-entry-info"> <div class='line-container'> <div class='line'> <div class='key'>Тип:</div> <div class='value'>{{TYPE}}</div> </div> </div> <div class='line-container'> <div class='line'> <div class='key'>{{COUNT_LABEL}}:</div> <div class='value'>{{COUNT_VALUE}}</div> </div> </div> <div class='line-container'> <div class='line'> {{DURATION_BLOCK}} </div> </div> <div class='line-container'> <div class='line'> <div class='key'>Статус:</div> <div class='value'> <span class="b-anime_status_tag released" data-text="{{STATUS}}"></span> &nbsp; <span class="b-tooltipped dotted mobile unprocessed" data-direction="right" title="С 29 сентября 2023 г. по 22 марта 2024 г.">в 2023-2024 гг.</span> </div> </div> </div> <div class='line-container'> <div class='line'> {{GENRES}} </div> </div> <div class='line-container'> <div class='line'> <div class='key'>Рейтинг:</div> <div class='value'> <span class="b-tooltipped dotted mobile unprocessed" data-direction="right" title="{{RATING_TOOLTIP}}">{{RATING}}</span> </div> </div> </div> <div class='line-container'> <div class='line'> <div class='key'>Первоисточник:</div> <div class='value'>{{SOURCE}}</div> </div> </div> <div class='line-container'> <div class='line'> <div class='key'>Альтернативные названия:</div> <div class='value'> <span class="other-names to-process" data-clickloaded-url="/{{CONTENT_TYPE_M}}/{{ID}}/other_names" data-dynamic="clickloaded"> <span>···</span> </span> </div> </div> </div> <div class="additional-links"> <div class="line-container"> <div class="key">У аниме:</div> <span class="linkeable" data-href="/{{CONTENT_TYPE_M}}/{{ID}}/critiques">--- рецензия</span> <span class="linkeable" data-href="/{{CONTENT_TYPE_M}}/{{ID}}/reviews">--- отзывов</span> <span class="linkeable" data-href="/forum/animanga/anime-{{ID}}/{{TOPIC_ID}}-obsuzhdenie-anime">{{COMMENTS_COUNT}} комментариев</span> <span class="linkeable" data-href="/{{CONTENT_TYPE_M}}/{{ID}}/coub">---</span> </div> </div> </div> </div> </div> <div class="c-info-right"> <div class="block" itemprop="aggregateRating" itemscope itemtype="http://schema.org/AggregateRating"> <div class="subheadline m5">Рейтинг</div> <div class="scores"> <meta content="10" itemprop="bestRating" /> <meta content="{{SCORE}}" itemprop="ratingValue" /> <meta content="{{RATING_COUNT}}" itemprop="ratingCount" /> <div class="b-rate"> <div class="stars-container"> <div class="hoverable-trigger"></div> <div class="stars score score-{{SCORE_ROUND}}"></div> <div class="stars hover"></div> <div class="stars background"></div> </div> <div class="text-score"> <div class="score-value score-{{SCORE_ROUND}}">{{SCORE}}</div> <div class="score-notice">{{RATING_NOTICE}}</div> </div> </div> </div> </div> <div class="block contest_winners"> </div> <style> .studio-list { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; } </style> <div class="block"> <div class="subheadline">{{ORG_LABEL}}</div> <div class="studio-list"> {{ORGANIZATIONS}} </div> </div> </div> </div> </div> <div class="c-description"> <div class="subheadline m5">Описание</div> <div class="block"> <div class="b-lang_trigger" data-eng="eng" data-rus="рус"> <span>eng</span> </div> <div class="description-other" style="display: none"> <div class="text"> <div class="b-text_with_paragraphs">В разработке.</div> </div> <div class="b-source"> <div class="source"> <div class="key">Источник:</div> <div class="val"> <a class='b-link' href="http://myanimelist.net/anime/{{MYANIMELIST_ID}}">myanimelist.net</a> </div> </div> </div> </div> <div class="description-current"> <div class="text" itemprop="description"> <div class="b-text_with_paragraphs">{{DESCRIPTION}}</div> </div> <div class="b-source"> <div class="contributors"> <div class="key">Автор:</div> <div class="b-user16"> <span>Неизвестно</span> </div> </div> </div> </div> </div> </div> </div> <div class="cc-related-authors"> <div class="c-column block_m"> <div class="b-options-floated mobile-phone"> <span class="linkeable" data-href="/animes/{{ID}}/related">Напрямую</span> <span class="linkeable" data-href="/animes/{{ID}}/chronology">Хронология</span> <span class="linkeable" data-href="/animes/{{ID}}/franchise">Франшиза</span> </div> <div class="subheadline">Связанное</div> {{RELATED_CONTENT}} </div> <div class="c-column c-authors block_m"> <div class="subheadline"> <span class="linkeable" data-href="/animes/{{ID}}/staff">Авторы</span> </div> {{STAFF}} </div> </div> <div class="cc-characters"> <div class="c-characters m0"> <div class="subheadline"> <span class="linkeable" data-href="/animes/{{ID}}/characters">Главные герои</span> </div> {{MAIN_CHARACTERS}} </div> {{SUPPORTING_CHARACTERS}} </div> {{SCREENSHOTS_AND_VIDEOS}} <div class="block"> <div class="subheadline"> <span class="linkeable" data-href="/animes/{{ID}}/similar">Похожее</span> </div> {{SIMILAR_ANIMES}} </div> <div class="subheadline"> <a href="/forum/animanga/anime-{{ID}}/{{TOPIC_ID}}-obsuzhdenie-anime" title="Все комментарии"> Комментарии <div class="count">{{COMMENTS_COUNT}}</div> </a> </div> </div> <div class="to-process" data-dynamic="topic" data-faye="[&quot;/topic-{{TOPIC_ID}}&quot;]"> <div class="b-comments"> <div class="comments-hider">Скрыть {{COMMENTS_COUNT}} комментариев</div> <div class="comments-expander">Показать {{COMMENTS_COUNT}} комментариев</div> <div class="comments-collapser hidden">свернуть</div> <div class="comments-loader to-process" data-clickloaded-url-template="/comments/fetch/{{COMMENTS_ANCHOR}}/Topic/{{TOPIC_ID}}/SKIP/10" data-count="37726" data-dynamic="clickloaded" data-limit="10" data-skip="0">Загрузить ещё 10 из {{COMMENTS_COUNT}} комментариев</div> </div> </div> <div class="editor-container"> <div class="b-options-floated"> <span class="action return-to-reply">назад</span> </div> <div class="subheadline">Твой комментарий</div> <form class="simple_form b-form new_comment" data-type="json" novalidate="novalidate" action="/api/comments" accept-charset="UTF-8" data-remote="true" method="post" > <input type="hidden" name="authenticity_token" value="{{AUTHENTICITY_TOKEN}}" autocomplete="off" /> <input name="frontend" type="hidden" value="true" /> <div class="b-input hidden comment_commentable_id"> <input class="hidden" autocomplete="off" type="hidden" value="{{TOPIC_ID}}" name="comment[commentable_id]" /> </div> <div class="b-input hidden comment_commentable_type"> <input class="hidden" autocomplete="off" type="hidden" value="Topic" name="comment[commentable_type]" /> </div> <div class="b-input hidden comment_is_offtopic"> <input class="hidden" autocomplete="off" type="hidden" value="false" name="comment[is_offtopic]" /> </div> <div class="b-shiki_editor shiki_editor-selector" data-dynamic="shiki_editor" data-field_name="comment[body]" > <div class="controls"> <aside class="buttons"> <div class="editor-controls"> <span class="editor-bold b-tooltipped" data-direction="top" original-title="Жирный" ></span> <span class="editor-italic b-tooltipped" data-direction="top" original-title="Курсив" ></span> <span class="editor-underline b-tooltipped" data-direction="top" original-title="Подчёркнутый" ></span> <span class="editor-strike b-tooltipped" data-direction="top" original-title="Зачёркнутый" ></span> <span class="editor-link b-tooltipped" data-direction="top" original-title="Ссылка" ></span> <span class="editor-image b-tooltipped" data-direction="top" original-title="Ссылка на картинку" ></span> <span class="editor-quote b-tooltipped" data-direction="top" original-title="Цитата" ></span> <span class="editor-spoiler b-tooltipped" data-direction="top" original-title="Спойлер" ></span> <label class="editor-file b-tooltipped" data-direction="top" original-title="Загрузить изображение" > <input type="file" /> </label> <span class="editor-smiley b-tooltipped" data-direction="top" original-title="Смайлик" ></span> </div> </aside> <aside class="markers"> <div class="b-offtopic_marker active off" data-text="оффтоп"></div> </aside> </div> <div class="smileys hidden" data-href="/comments/smileys" > <div class="ajax-loading" title="Загрузка..."></div> </div> <div class="links hidden hidden-block"> <label> <input type="radio" name="link_type" value="url" data-placeholder="Укажи адрес страницы..." /> <span>ссылка</span> </label> <label> <input type="radio" name="link_type" value="anime" data-placeholder="Укажи название аниме..." data-autocomplete="/animes/autocomplete" /> <span>аниме</span> </label> <label> <input type="radio" name="link_type" value="manga" data-placeholder="Укажи название манги..." data-autocomplete="/mangas/autocomplete" /> <span>манга</span> </label> <label> <input type="radio" name="link_type" value="ranobe" data-placeholder="Укажи название ранобэ..." data-autocomplete="/ranobe/autocomplete" /> <span>ранобэ</span> </label> <label> <input type="radio" name="link_type" value="character" data-placeholder="Укажи имя персонажа..." data-autocomplete="/characters/autocomplete" /> <span>персонаж</span> </label> <label> <input type="radio" name="link_type" value="person" data-placeholder="Укажи имя человека..." data-autocomplete="/people/autocomplete" /> <span>человек</span> </label> <div class="input-container"> <input type="text" name="link_value" value="" class="link-value ac_input" autocomplete="off" /> <div class="b-button ok" data-type="links">OK</div> </div> </div> <div class="images hidden hidden-block"> <span>Вставка изображения:</span> <div class="input-container"> <input type="text" name="image_value" value="" class="link-value" placeholder="Укажи адрес картинки..." /> <div class="b-button ok" data-type="images">OK</div> </div> </div> <div class="quotes hidden hidden-block"> <span>Цитирование пользователя:</span> <div class="input-container"> <input type="text" name="quote_value" value="" class="link-value ac_input" placeholder="Укажи имя пользователя..." data-autocomplete="/users/autocomplete" autocomplete="off" /> <div class="b-button ok" data-type="quotes">OK</div> </div> </div> <div class="b-upload_progress"> <div class="bar"></div> </div> <div class="body"> <div class="editor"> <div class="b-input text required comment_body"> <label class="text required control-label"> <abbr title="Обязательное поле">*</abbr> Текст </label> <textarea class="text required editor-area pastable" placeholder="Текст комментария" tabindex="0" data-upload_url="/api/user_images?linked_type=Comment" data-item_type="comment" name="comment[body]" ></textarea> </div> </div> <div class="preview"></div> </div> <footer> <input type="submit" name="commit" value="Написать" id="submit_907900.5100256373" class="btn-primary btn-submit btn" data-disable-with="Отправка…" autocomplete="off" tabindex="0" /> <div class="unpreview" tabindex="0">Вернуться к редактированию</div> <div class="b-button preview" data-preview_url="/comments/preview" tabindex="0" > Предпросмотр </div> <div class="hide">Скрыть</div> <div class="about-bb_codes"> <a href="/bb_codes" target="_blaNK" >примеры BBCode</a > </div> </footer> </div> </form> </div> </div> <aside class="l-menu"> <div class="b-animes-menu"> {{USER_RATINGS}} {{USER_STATUSES}} <div class="block"> <div class="subheadline m5">У друзей</div> </div> <div class="b-favoured"> <div class="subheadline"> <div class="linkeable" data-href="/animes/{{ID}}/favoured"> В избранном <div class="count">---</div> </div> </div> <div class="cc"> <div class="b-user c-column avatar"> <a class="avatar" href="/forum/site/610897-shikimori-404-fix" style="display: block; padding: 10px; text-align: center; color: #0066cc; text-decoration: none; overflow-wrap: anywhere;"> . </a> </div> </div> </div> <div class="block"> <div class="subheadline"> <div class="linkeable" data-href="/animes/{{ID}}/clubs"> В клубах <div class="count">---</div> </div> </div> <div class="b-clubs one-line"> <a href="/forum/site/610897-shikimori-404-fix" style="display: block; padding: 10px; text-align: center; color: #0066cc; text-decoration: none; overflow-wrap: anywhere;"> Если знаете как вернуть данную информацию напишите мне в топик скрипта на сайте </a> </div> </div> <div class="block"> <div class="subheadline m5"> <div class="linkeable" data-href="/animes/{{ID}}/collections"> В коллекциях <div class="count">---</div> </div> </div> <div class="block"> <div class="b-menu-line"> <span> <a class="b-link" href="/forum/site/610897-shikimori-404-fix" style="display: block; padding: 10px; text-align: center; color: #0066cc; text-decoration: none; overflow-wrap: anywhere;"> Если знаете как вернуть данную информацию напишите мне в топик скрипта на сайте </a> </span> </div> </div> </div> {{NEWS}} <div class="block"> <div class="subheadline m8">На других сайтах</div> {{EXTERNAL_LINKS}} </div> <div class="block"> <div class="subheadline m5">Субтитры</div> {{SUBTITLES}} </div> <div class="block"> <div class="subheadline m5">Озвучка</div> {{DUBBING}} </div> </div> </aside> </div> </div> </div> <footer class="l-footer"> <div class="copyright"> &copy; {{DOMAIN_NAME}}&nbsp; <span class="date">2011-2025</span> </div> <div class="links"> <a class="terms" href="/terms" tabindex="-1" title="Соглашение">Соглашение</a> <a class="for-right-holders" href="/for_right_holders" tabindex="-1" title="Для правообладателей">Для правообладателей</a> <a class="sitemap" href="/sitemap" tabindex="-1" title="Карта сайта">Карта сайта</a> </div> </footer> </section> <div class="b-shade"></div> <div class="b-to-top"> <div class="slide"></div> <div class="arrow"></div> </div> <div class="b-feedback"> <div class="hover-activator"></div> <span class="marker-positioner" data-action="/feedback" data-remote="true" data-type="html"> <div class="marker-text" data-text="Сообщить об ошибке"></div> </span> </div> <script id="js_export"> {{JS_EXPORT}} </script> <script> //<![CDATA[ window.gon={};gon.is_favoured=false; //]]> </script> </body> </html>
     `;
 
 	// === ------- ===
@@ -424,8 +424,7 @@
 		const queryDetails = isAnime
 			? GRAPHQL_QUERY_ANIME_DETAILS
 			: GRAPHQL_QUERY_MANGA_DETAILS;
-		const missingImg =
-			"/assets/globals/missing_preview.jpg";
+		const missingImg = "/assets/globals/missing_preview.jpg";
 
 		// Хелпер для выполнения GraphQL запроса
 		const fetchGQL = async (query) => {
@@ -637,7 +636,12 @@
 
 		// 7. Сборка финального объекта
 		const finalData = {
+			// anime / manga
 			TYPE: type,
+			// Anime / Manga
+			TYPE_UP: isAnime ? "Anime" : "Manga",
+			// animes / mangas
+			TYPE_M: isAnime ? "animes" : "mangas",
 			INFO: {
 				ID: entity.id,
 				RU_NAME: entity.russian || entity.name,
@@ -1125,8 +1129,10 @@
 		html = html.replaceAll("{{ID}}", data.INFO.ID || "");
 		html = html.replaceAll("{{RU_NAME}}", data.INFO.RU_NAME || "N/A");
 		html = html.replaceAll("{{EN_NAME}}", data.INFO.EN_NAME || "N/A");
-		html = html.replaceAll("{{TYPE}}", data.INFO.TYPE || "?");
-		html = html.replaceAll("{{CONTENT_TYPE}}", content_type || "?");
+		html = html.replaceAll("{{TYPE}}", data.INFO.TYPE || "?"); // tv / ova
+		html = html.replaceAll("{{CONTENT_TYPE}}", content_type || "?"); // anime / manga
+		html = html.replaceAll("{{CONTENT_TYPE_UP}}", data.TYPE_UP || "?"); // Anime / Manga
+		html = html.replaceAll("{{CONTENT_TYPE_M}}", data.TYPE_M || "?"); // animes /
 		html = html.replaceAll("{{SECTION_NAME}}", sectionName || "?");
 		html = html.replaceAll("{{STATUS}}", data.INFO.STATUS || "N/A");
 		html = html.replaceAll("{{SCORE}}", data.INFO.SCORE || "N/A");
@@ -1301,69 +1307,93 @@
 		}
 
 		/**
-		 * @description Рендерит HTML-блок для главных персонажей.
-		 * @param {Array} mainCharacters - Массив главных персонажей из getRoles.
+		 * @description Рендерит HTML-блок для персонажей.
+		 * @param {Array} charactersList - Массив персонажей.
+		 * @param {Boolean} isMain - Флаг: true для главных (показать всех), false для второстепенных (скрывать под спойлер).
 		 * @returns {string} Готовый HTML-блок.
 		 */
-
-		const renderMainCharacters = (mainCharacters) => {
-			if (!Array.isArray(mainCharacters) || mainCharacters.length === 0) {
-				return '<div class="cc m0" style="text-align: center; padding: 20px; color: #666; font-style: italic;">Нет информации о главных героях.</div>';
+		const renderCharacters = (charactersList, isMain = true) => {
+			if (!Array.isArray(charactersList) || charactersList.length === 0) {
+				// Если главных героев нет, выводим заглушку. Если нет второстепенных — просто пустоту.
+				if (isMain) {
+					return '<div class="cc m0" style="text-align: center; padding: 20px; color: #666; font-style: italic;">Нет информации о главных героях.</div>';
+				}
+				return "";
 			}
 
-			const charactersHtml = mainCharacters
-				.map((role) => {
-					const char = role.character;
-					if (!char) return "";
+			const itemsHtml = charactersList.map((role) => {
+				const char = role.character;
+				if (!char) return "";
 
-					const url = getFullUrl(char.url);
-					const imagePreview = char.image?.preview
-						? getFullUrl(char.image.preview)
-						: "/assets/globals/missing_preview.jpg";
-					const imageX96 = char.image?.x96
-						? getFullUrl(char.image.x96)
-						: imagePreview;
+				const url = getFullUrl(char.url);
+				const imagePreview = char.image?.preview
+					? getFullUrl(char.image.preview)
+					: "/assets/globals/missing_preview.jpg";
+				const imageX96 = char.image?.x96
+					? getFullUrl(char.image.x96)
+					: imagePreview;
 
-					return `
-            <article class="c-column b-catalog_entry c-character entry-${
-				char.id
-			}" id="${char.id}" itemscope itemtype="http://schema.org/Person">
-                <meta content="${
-					char.image.original
-				}" itemprop="image">
-                <meta content="${
-					char.image.x48
-				}" itemprop="thumbnailUrl">
-                <a class="cover bubbled" data-delay="150" data-tooltip_url="/characters/${
+				return `
+				<article class="c-column b-catalog_entry c-character entry-${
 					char.id
-				}/tooltip" href="${url}">
-                    <span class="image-decor">
-                        <span class="image-cutter">
-                            <picture>
-                                <source srcset="${imagePreview}, ${imageX96} 2x" type="image/webp">
-                                <img alt="${
-									char.russian || char.name
-								}" src="${imagePreview}" srcset="${imageX96} 2x">
-                            </picture>
-                        </span>
-                    </span>
-                    <span class="title two_lined" itemprop="name">
-                        <span class="name-en">${char.name}</span>
-                        <span class="name-ru">${
-							char.russian || char.name
-						}</span>
-                    </span>
-                </a>
-            </article>
-          `;
-				})
-				.join("");
+				}" id="${char.id}" itemscope itemtype="http://schema.org/Person">
+					<meta content="${char.image.original}" itemprop="image">
+					<meta content="${char.image.x48}" itemprop="thumbnailUrl">
+					<a class="cover bubbled" data-delay="150" data-tooltip_url="/characters/${
+						char.id
+					}/tooltip" href="${url}">
+						<span class="image-decor">
+							<span class="image-cutter">
+								<picture>
+									<source srcset="${imagePreview}, ${imageX96} 2x" type="image/webp">
+									<img alt="${
+										char.russian || char.name
+									}" src="${imagePreview}" srcset="${imageX96} 2x">
+								</picture>
+							</span>
+						</span>
+						<span class="title two_lined" itemprop="name">
+							<span class="name-en">${char.name}</span>
+							<span class="name-ru">${char.russian || char.name}</span>
+						</span>
+					</a>
+				</article>
+				`;
+			});
 
-			return `<div class="cc m0">${charactersHtml}</div>`;
+			let contentHtml = "";
+
+			if (isMain) {
+				// Главные герои: показываем всех
+				contentHtml = itemsHtml.join("");
+			} else {
+				// Второстепенные: прячем под спойлер (лимит 7)
+				contentHtml = renderExpandable(itemsHtml, 7, "показать всех");
+			}
+
+			const gridHtml = `<div class="cc m0">${contentHtml}</div>`;
+
+			if (isMain) {
+				return gridHtml;
+			} else {
+				// Для второстепенных добавляем обертку и заголовок, так как они находятся вне основного блока в шаблоне
+				return `
+                    <div class="c-characters m0">
+                        <div class="subheadline">Второстепенные герои</div>
+                        ${gridHtml}
+                    </div>
+                `;
+			}
 		};
+		
 		html = html.replaceAll(
 			"{{MAIN_CHARACTERS}}",
-			renderMainCharacters(data.ROLES.main),
+			renderCharacters(data.ROLES.main, true),
+		);
+
+		html = html.replaceAll(
+			"{{SUPPORTING_CHARACTERS}}",
+			renderCharacters(data.ROLES.supporting, false),
 		);
 
 		function renderStaffBlock(staff) {
@@ -2078,6 +2108,149 @@
 		log("Обработчики Show More активированы (версия 2.0)");
 	};
 
+	// Вспомогательные функции для кнопки избраного
+	async function add_favorite(e, t) {
+		const n = document.querySelector('meta[name="csrf-token"]')?.content;
+		if (!n) return !1;
+		try {
+			return (
+				await fetch(`/api/favorites/${e}/${t}`, {
+					method: "POST",
+					headers: {
+						"X-CSRF-Token": n,
+						"X-Requested-With": "XMLHttpRequest",
+						Accept: "application/json",
+					},
+					credentials: "include",
+				})
+			).ok;
+		} catch {
+			return !1;
+		}
+	}
+	async function delete_favorite(e, t) {
+		const n = document.querySelector('meta[name="csrf-token"]')?.content;
+		if (!n) return !1;
+		try {
+			return (
+				await fetch(`/api/favorites/${e}/${t}`, {
+					method: "DELETE",
+					headers: {
+						"X-CSRF-Token": n,
+						"X-Requested-With": "XMLHttpRequest",
+						Accept: "application/json",
+					},
+					credentials: "include",
+				})
+			).ok;
+		} catch {
+			return !1;
+		}
+	}
+
+	// Кнопка избраного
+	async function setupFavoriteButton() {
+		const JSON_HEADERS = {
+			"X-Requested-With": "XMLHttpRequest",
+			Accept: "application/json",
+		};
+
+		const FAVORITE_TEXT = {
+			add: "Добавить в избранное",
+			remove: "Удалить из избранного",
+		};
+
+		const fetchJSON = async (url) => {
+			const response = await fetch(url, {
+				method: "GET",
+				headers: JSON_HEADERS,
+				credentials: "include",
+			});
+
+			if (!response.ok) {
+				throw new Error(`Request failed: ${url}`);
+			}
+
+			return response.json();
+		};
+
+		const setButtonState = (button, isFavorite) => {
+			const action = isFavorite ? "remove" : "add";
+
+			button.classList.toggle("fav-add", !isFavorite);
+			button.classList.toggle("fav-remove", isFavorite);
+
+			button.setAttribute("title", FAVORITE_TEXT[action]);
+			button.setAttribute("original-title", FAVORITE_TEXT[action]);
+
+			if (button.hasAttribute("data-text")) {
+				button.setAttribute("data-text", FAVORITE_TEXT[action]);
+			}
+		};
+
+		const resolveFavoritesKey = (type, kind) => {
+			if (type === "Person") {
+				switch (kind) {
+					case "Mangaka":
+						return "mangakas";
+					case "Seyu":
+						return "seyu";
+					case "Producer":
+						return "producers";
+					default:
+						return "people";
+				}
+			}
+
+			const base = type.toLowerCase();
+			return base === "ranobe" ? base : `${base}s`;
+		};
+
+		let user;
+		let favourites;
+
+		try {
+			user = await fetchJSON("/api/users/whoami");
+			favourites = await fetchJSON(`/api/users/${user.id}/favourites`);
+		} catch (error) {
+			error(error.message);
+			return;
+		}
+
+		const buttons = document.querySelectorAll(
+			'a.b-subposter-action[data-remote="true"][href^="/api/favorites/"]',
+		);
+
+		buttons.forEach((button) => {
+			const parts = button.getAttribute("href").split("/");
+			const type = parts.at(-2);
+			const id = Number(parts.at(-1));
+			const kind = button.getAttribute("data-kind") || "";
+
+			const key = resolveFavoritesKey(type, kind);
+			const favList = favourites[key] || [];
+
+			const isFavorite = favList.some((item) => item.id === id);
+			setButtonState(button, isFavorite);
+
+			button.addEventListener("click", async (e) => {
+				e.preventDefault();
+
+				const adding = button.classList.contains("fav-add");
+				const success = adding
+					? await add_favorite(type, id)
+					: await delete_favorite(type, id);
+
+				if (!success) {
+					error("Failed to toggle favorite");
+					return;
+				}
+
+				setButtonState(button, adding);
+			});
+		});
+	}
+
 	/**
 	 * @description Искусственно вызывает события загрузки страницы, чтобы "оживить" JS-компоненты Shikimori.
 	 */
@@ -2647,9 +2820,10 @@
 
 			setTimeout(async () => {
 				triggerPageLoadEvents();
-				// setupReplyButtons();
-				// setupQuoteButtons();
+				setupReplyButtons();
+				setupQuoteButtons();
 				setupShowMoreHandlers();
+				setupFavoriteButton();
 
 				// Загружаем и выполняем скрипты Shikimori
 				// await executeShikimoriScripts();
