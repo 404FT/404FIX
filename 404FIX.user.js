@@ -1,11 +1,11 @@
 // ==UserScript==
 // @name         Shikimori 404 Fix
 // @namespace    http://tampermonkey.net/
-// @version      2.2.1
+// @version      2.3
 // @description  Fetch anime info and render 404 pages.
 // @author       404FT
-// @updateURL    https://raw.githubusercontent.com/404FT/404FIX/refs/heads/main/404FIX.js
-// @downloadURL  https://raw.githubusercontent.com/404FT/404FIX/refs/heads/main/404FIX.js
+// @updateURL    https://raw.githubusercontent.com/404FT/404FIX/refs/heads/main/404FIX.user.js
+// @downloadURL  https://raw.githubusercontent.com/404FT/404FIX/refs/heads/main/404FIX.user.js
 // @match        https://shikimori.one/*
 // @match        https://shikimori.io/*
 // @match        https://shiki.one/*
@@ -28,12 +28,8 @@
 		RELATED_VISIBLE_COUNT: 5, // Сколько связанных произведений показывать сразу
 		SIMILAR_LIMIT: 7, // Сколько похожих аниме показывать
 		COMMENTS_LIMIT: 50, // Макс. кол-во загружаемых комментариев
-		/*
-		 * Заготовка для выбора как получать скрипты, руками каждый
-		 * или получить их с донорской страницы
-		 */
-		// LOAD_SHIKI_SCRIPTS: true,
-		USER_AGENT: "TampermonkeyScript/2.1", // User-Agent для запросов
+		USE_DONOR_CSS: true, // true - брать custom_css с донорской страницы, false - использовать старый метод API
+		USER_AGENT: "TampermonkeyScript/2.3", // User-Agent для запросов
 		TEMPLATE_URL:
 			"https://raw.githubusercontent.com/404FT/404FIX/refs/heads/main/404FIX.html",
 		DONOR_URL: "/animes/62616-sheng-dan-chuanqi-zhu-gong-de-shaizi",
@@ -308,6 +304,137 @@
 		</div>`;
 	};
 	
+	// --- LRU Кеш для API и тяжелых объектов ---
+	class LRUCache {
+		constructor(maxSize = 100) {
+			this.cache = new Map();
+			this.maxSize = maxSize;
+		}
+
+		get(key) {
+			if (!this.cache.has(key)) return null;
+			const val = this.cache.get(key);
+			// Обновляем позицию элемента (делаем его "недавним")
+			this.cache.delete(key);
+			this.cache.set(key, val);
+			return val;
+		}
+
+		set(key, value) {
+			// Проверка на утечку памяти (работает в Chromium)
+			if (window.performance && performance.memory) {
+				const { usedJSHeapSize, jsHeapSizeLimit } = performance.memory;
+				if (usedJSHeapSize / jsHeapSizeLimit > 0.5) {
+					debug('⚠️ Память превышает 50%. Сбрасываем половину кеша (LRU).');
+					this.dropHalf();
+				}
+			}
+
+			if (this.cache.has(key)) {
+				this.cache.delete(key);
+			} else if (this.cache.size >= this.maxSize) {
+				// Удаляем самый старый элемент (первый добавленный)
+				const oldestKey = this.cache.keys().next().value;
+				this.cache.delete(oldestKey);
+			}
+			this.cache.set(key, value);
+		}
+
+		dropHalf() {
+			const dropCount = Math.floor(this.cache.size / 2);
+			let i = 0;
+			for (const key of this.cache.keys()) {
+				if (i >= dropCount) break;
+				this.cache.delete(key);
+				i++;
+			}
+		}
+	}
+	
+	class PersistentLRUCache {
+		constructor(namespace, maxSize = 20, ttlMs = 86400000) { // ttlMs = 24 часа по умолчанию
+			this.prefix = `404fix_${namespace}_`;
+			this.keysKey = `${this.prefix}keys`;
+			this.maxSize = maxSize;
+			this.ttlMs = ttlMs;
+			
+			try {
+				this.keys = JSON.parse(localStorage.getItem(this.keysKey) || '[]');
+			} catch {
+				this.keys = [];
+			}
+		}
+
+		get(key) {
+			const itemStr = localStorage.getItem(this.prefix + key);
+			if (!itemStr) return null;
+
+			try {
+				const item = JSON.parse(itemStr);
+				// Проверяем срок годности
+				if (Date.now() > item.exp) {
+					this.delete(key);
+					return null;
+				}
+				
+				// Обновляем позицию (делаем недавно использованным)
+				this.keys = this.keys.filter(k => k !== key);
+				this.keys.push(key);
+				this._saveKeys();
+				
+				return item.value;
+			} catch { return null; }
+		}
+
+		set(key, value) {
+			const exp = Date.now() + this.ttlMs;
+			
+			if (!this.keys.includes(key)) {
+				this.keys.push(key);
+			} else {
+				this.keys = this.keys.filter(k => k !== key);
+				this.keys.push(key);
+			}
+
+			// Выталкиваем самые старые элементы, если превысили лимит
+			while (this.keys.length > this.maxSize) {
+				const oldestKey = this.keys.shift();
+				localStorage.removeItem(this.prefix + oldestKey);
+			}
+
+			this._saveKeys();
+			try {
+				localStorage.setItem(this.prefix + key, JSON.stringify({ value, exp }));
+			} catch (e) {
+				// Защита: если память переполнена - сбрасываем половину
+				const dropCount = Math.ceil(this.keys.length / 2);
+				for(let i = 0; i < dropCount; i++) {
+					const k = this.keys.shift();
+					localStorage.removeItem(this.prefix + k);
+				}
+				this._saveKeys();
+				localStorage.setItem(this.prefix + key, JSON.stringify({ value, exp }));
+			}
+		}
+
+		delete(key) {
+			this.keys = this.keys.filter(k => k !== key);
+			this._saveKeys();
+			localStorage.removeItem(this.prefix + key);
+		}
+
+		_saveKeys() {
+			localStorage.setItem(this.keysKey, JSON.stringify(this.keys));
+		}
+	}
+	
+	// Создаем экземпляры кеша
+	// const apiCache = new LRUCache(50); // Кеш для запросов (similar и т.д.)
+	const similarCache = new PersistentLRUCache('similar', 20, 24 * 60 * 60 * 1000);
+	
+	// Кеш для тяжелых GraphQL данных (храним до 20 элементов 3 дня)
+	const gqlCache = new PersistentLRUCache('gql', 20, 3 * 24 * 60 * 60 * 1000);
+	
 	// === ------------------------- ===
 	// === Модуль обработки запросов ===
 	// === ------------------------- ===
@@ -367,14 +494,40 @@
 	// === ----------------------- ===
 
 	/**
-	 * Получение текущего пользователя через whoami запрос.
+	 * Получение текущего пользователя через кешированное значение localStorage или whoami запрос.
 	 * @returns Object описывающий залогиненного пользователя, null если пользователь не залогинен.
 	 */
 	const getCurrentUser = async () => {
 		try {
+			// 1. Пытаемся взять ID текущего пользователя из DOM
+			let currentUserId = null;
+			const dataUserAttr = document.body.getAttribute('data-user');
+			if (dataUserAttr) {
+				try {
+					currentUserId = JSON.parse(dataUserAttr).id;
+				} catch (e) { debug("Ошибка парсинга data-user из текущего DOM", e); }
+			}
+
+			// 2. Проверяем локальный кеш
+			const cachedUserStr = localStorage.getItem('404fix_current_user');
+			if (cachedUserStr) {
+				const cachedUser = JSON.parse(cachedUserStr);
+				// Если ID из data-user совпадает с кешем — возвращаем кеш (МИНУС 1 ЗАПРОС!)
+				if (currentUserId && cachedUser.USER_ID === currentUserId) {
+					log("👤 Пользователь загружен из кеша (ID совпал с data-user).");
+					return cachedUser;
+				}
+			}
+
+			// 3. Если кеша нет, или ID сменился (перезашли с другого аккаунта) — делаем whoami
+			log("👤 Запрашиваем whoami (кеш пуст или аккаунт изменен)...");
 			const user = await apiRequest("/users/whoami");
-			if (!user || !user.id) return null;
-			return {
+			if (!user || !user.id) {
+				localStorage.removeItem('404fix_current_user');
+				return null;
+			}
+
+			const userData = {
 				USER_ID: user.id,
 				USER_NICK: user.nickname,
 				USER_URL: user.url || `${CONFIG.SITE_NAME}/${user.nickname}`,
@@ -387,11 +540,13 @@
 				USER_AVATAR_X148: user.image?.x148 || "",
 				USER_AVATAR_X160: user.image?.x160 || "",
 			};
+			
+			// Сохраняем в кеш для следующих страниц
+			localStorage.setItem('404fix_current_user', JSON.stringify(userData));
+			debug(`👤 Пользователь ${userData.USER_NICK} (${userData.USER_ID}) сохранён в локальное хранилище:`, userData);
+			return userData;
 		} catch (err) {
-			log(
-				"Не удалось получить данные пользователя (возможно, не авторизован).",
-				err.message,
-			);
+			error("Не удалось получить данные пользователя.", err.message);
 			return null;
 		}
 	};
@@ -442,65 +597,70 @@
 
 	/**
 	 * Загружает "донорскую" страницу для извлечения свежих ассетов: CSRF-токена, CSS и JS ссылок.
-	 * @returns {Promise<string|Error>} Возвращает заполненный object, пустую или неполную структуру, или же ошибку.
+	 * @returns {Promise<assets|Error>} Возвращает заполненный object, пустую или неполную структуру, или же ошибку.
 	 */
 	const getPageAssets = async () => {
 		const assets = {
 			CSRF_TOKEN: null,
 			FETCHED_CSS: "",
 			FETCHED_JS: "",
+			USER_DATA: null,
+			CUSTOM_CSS: null
 		};
 		try {
-			log(
-				"📦 Запрашиваю страницу-донор для получения свежих ассетов (CSRF, CSS, JS)...",
-			);
+			log("📦 Запрашиваю страницу-донор для получения ассетов, пользователя и CSS...");
 			const response = await fetch(CONFIG.DONOR_URL);
-			if (!response.ok)
-				throw new Error(`Статус ответа: ${response.status}`);
+			if (!response.ok) throw new Error(`Статус ответа: ${response.status}`);
 
 			const pageHtml = await response.text();
 			const parser = new DOMParser();
 			const doc = parser.parseFromString(pageHtml, "text/html");
 
-			// 1. Извлекаем CSRF-токен
+			// 1. CSRF-токен
 			const tokenElement = doc.querySelector('meta[name="csrf-token"]');
-			if (tokenElement) {
-				assets.CSRF_TOKEN = tokenElement.getAttribute("content");
-				log("📦 CSRF-токен успешно извлечён.");
-			} else {
-				error("⚠️ Мета-тег csrf-token не найден на странице-доноре.");
+			if (tokenElement) assets.CSRF_TOKEN = tokenElement.getAttribute("content");
+
+			// 2. Скрипты и Стили
+			const cssLinks = doc.querySelectorAll('head > link[rel="stylesheet"][href^="/packs/"], head > link[rel="stylesheet"][href^="/assets/"]');
+			if (cssLinks) assets.FETCHED_CSS = Array.from(cssLinks).map((l) => l.outerHTML).join("\n");
+
+			const jsScripts = doc.querySelectorAll('head > script[defer][src*="/packs/js/"]');
+			if (jsScripts) assets.FETCHED_JS = Array.from(jsScripts).map((s) => s.outerHTML).join("\n");
+
+			// 3. Данные пользователя из data-user
+			const bodyUser = doc.body.getAttribute('data-user');
+			if (bodyUser) {
+				try {
+					const rawUser = JSON.parse(bodyUser);
+					if (rawUser.id) {
+						// Пытаемся вытащить ник из URL ("https://shikimori.one/Nickname")
+						const nick = rawUser.url ? rawUser.url.split('/').pop() : 'User';
+						// Аватарку ищем в шапке
+						const profileImg = doc.querySelector('.menu-dropdown.profile img');
+						
+						assets.USER_DATA = {
+							USER_ID: rawUser.id,
+							USER_NICK: nick,
+							USER_URL: rawUser.url,
+							USER_AVATAR_X48: profileImg ? profileImg.getAttribute('src') : '',
+							USER_AVATAR_X80: (profileImg && profileImg.getAttribute('srcset')) ? profileImg.getAttribute('srcset').split(' ')[0] : ''
+						};
+						log(`👤 Извлечены данные пользователя: ${nick}`);
+					}
+				} catch (e) { debug("Ошибка парсинга data-user с донора", e); }
 			}
 
-			// 2. Собираем все теги <link rel="stylesheet"> с путями /packs/ или /assets/
-			const cssLinks = doc.querySelectorAll(
-				'head > link[rel="stylesheet"][href^="/packs/"], head > link[rel="stylesheet"][href^="/assets/"]',
-			);
-			if (cssLinks) {
-				assets.FETCHED_CSS = Array.from(cssLinks)
-					.map((link) => link.outerHTML)
-					.join("\n");
-				log(`📦 Найдено и извлечено ${cssLinks.length} CSS-ссылок.`);
-			} else {
-				error("⚠️ CSS-ссылки не найдены на странице-доноре.");
-			}
-
-			// 3. Собираем все теги <script defer> с путями /packs/
-			const jsScripts = doc.querySelectorAll(
-				'head > script[defer][src*="/packs/js/"]',
-			);
-			if (jsScripts) {
-				assets.FETCHED_JS = Array.from(jsScripts)
-					.map((script) => script.outerHTML)
-					.join("\n");
-				log(`📦 Найдено и извлечено ${jsScripts.length} JS-ссылок.`);
-			} else {
-				error("⚠️ JS-скрипты не найдены на странице-доноре.");
+			// 4. Custom CSS пользователя
+			const customCssNode = doc.getElementById('custom_css');
+			if (customCssNode) {
+				assets.CUSTOM_CSS = customCssNode.innerHTML;
+				log("🎨 Кастомный CSS пользователя извлечен из донорской страницы.");
 			}
 
 			return assets;
 		} catch (err) {
 			error("❌ Ошибка при получении ассетов страницы:", err.message);
-			return assets; // Возвращаем пустую структуру, чтобы не сломать скрипт
+			return assets; 
 		}
 	};
 
@@ -508,7 +668,7 @@
 	 *
 	 * @param {Number} topicId ID топика, откуда запросить комментарии.
 	 * @param {Number} maxComments Кол-во комментариев для загрузки.
-	 * @returns
+	 * @returns {Promise<allComments>}
 	 */
 	const fetchComments = async (
 		topicId,
@@ -552,7 +712,6 @@
 		const typeUpper = (targetType.toLowerCase() === 'anime') ? 'Anime' : 'Manga';
 		
 		try {
-			// Используем твой apiRequest
 			const res = await apiRequest(`/v2/user_rates?user_id=${user.USER_ID}&target_id=${targetId}&target_type=${typeUpper}`);
 			
 			// API возвращает массив. Если статус есть, он первый.
@@ -567,9 +726,9 @@
 	};
 	
 	/**
-	 * @description Получает полные данные сущности через 2 параллельных GraphQL запроса (Main + Details)
+	 * @description Получает полные данные сущности через кеш или 2 параллельных GraphQL запроса (Main + Details)
 	 */
-	const getEntityData = async (id, type) => {
+	const getEntityData = async (id, type, assetsPromise) => {
 		log(`📡 Загрузка данных: ${type} ID: ${id}`);
 
 		const isAnime = type === "anime";
@@ -596,42 +755,62 @@
 			return await response.json();
 		};
 		
-		const user_result = await getCurrentUser();
-		
-		const fetchUserRate = async (user_object) => {
-            const user = user_object; // Получаем текущего юзера
-            if (!user || !user.USER_ID) return null; // Если не залогинен, возвращаем null
+		// Локальная функция, которая ДОЖИДАЕТСЯ парсинга донора
+		const fetchUserRateLocal = async () => {
+			const assets = await assetsPromise;
+			const user = assets.USER_DATA;
+			if (!user || !user.USER_ID) return null;
 
-            const targetType = isAnime ? "Anime" : "Manga";
-            // Запрашиваем статус конкретно для этого тайтла
-            return apiRequest(`/v2/user_rates?user_id=${user.USER_ID}&target_id=${id}&target_type=${targetType}`);
-        };
+			const targetType = isAnime ? "Anime" : "Manga";
+			return apiRequest(`/v2/user_rates?user_id=${user.USER_ID}&target_id=${id}&target_type=${targetType}`);
+		};
 		
-		// 1. Запускаем ВСЕ запросы параллельно (Main GQL, Details GQL, Topics REST, Similar REST)
-		const [mainResult, detailsResult, newsResult, similarResult, userRateResult] =
-			await Promise.allSettled([
+		const similarCacheKey = `${type}_${id}`;
+		const fetchSimilar = async () => {
+			let cached = similarCache.get(similarCacheKey);
+			if (cached) {
+				log(`📦 Similar загружен из кеша (localStorage) для ${type} ${id}`);
+				return cached;
+			}
+			const res = await apiRequest(`/${type}s/${id}/similar`);
+			similarCache.set(similarCacheKey, res);
+			return res;
+		};
+		
+		const gqlCacheKey = `${type}_${id}`;
+		const fetchHeavyGQL = async () => {
+			let cached = gqlCache.get(gqlCacheKey);
+			if (cached) {
+				log(`⚡ Основные данные ${type}-${id} загружены из кеша (мгновенно)`);
+				return cached;
+			}
+			// Запрашиваем оба GraphQL, если кеша нет или он протух
+			const [main, details] = await Promise.all([
 				fetchGQL(queryMain),
-				fetchGQL(queryDetails),
-				apiRequest(
-					`/topics?forum=news&linked_type=${
-						isAnime ? "Anime" : "Manga"
-					}&linked_id=${id}&limit=30&order=comments_count&order_direction=desc`,
-				),
-				apiRequest(`/${type}s/${id}/similar`),
-				fetchUserRate(user_result)
+				fetchGQL(queryDetails)
+			]);
+			const result = { main, details };
+			gqlCache.set(gqlCacheKey, result);
+			return result;
+		};
+		
+		// 1. Запускаем все процессы параллельно
+		const [heavyResult, newsResult, similarResult, userRateResult] =
+			await Promise.allSettled([
+				fetchHeavyGQL(),
+				apiRequest(`/topics?forum=news&linked_type=${isAnime ? "Anime" : "Manga"}&linked_id=${id}&limit=30&order=comments_count&order_direction=desc`),
+				fetchSimilar(), // Функция similarCache из прошлого сообщения
+				fetchUserRateLocal() // Функция с ожиданием assetsPromise из прошлого сообщения
 			]);
 
 		// 2. Проверка основных данных
-		if (mainResult.status === "rejected" || !mainResult.value.data) {
+		if (heavyResult.status === "rejected" || !heavyResult.value.main.data) {
 			throw new Error("Main GraphQL request failed");
 		}
 
-		// Достаем данные из ответов
-		const mainDataRoot = mainResult.value.data;
-		const detailsDataRoot =
-			detailsResult.status === "fulfilled"
-				? detailsResult.value.data
-				: null;
+		// Достаем данные из ответов (обращаемся к нашему heavyResult)
+		const mainDataRoot = heavyResult.value.main.data;
+		const detailsDataRoot = heavyResult.value.details?.data || null;
 
 		const mainList = isAnime ? mainDataRoot.animes : mainDataRoot.mangas;
 		const detailsList = detailsDataRoot
@@ -909,6 +1088,8 @@
 
 		log(`✅ Обработка данных завершена для ${type} ID: ${id}`);
 		debug(finalData);
+		const sizeBytes = new Blob([JSON.stringify(finalData)]).size;
+		log(`⚖️ Размер данных этого тайтла: ${(sizeBytes / 1024).toFixed(2)} KB`);
 		return finalData;
 	};
 
@@ -3135,24 +3316,32 @@
 	let renderEntityPage = async (id, type) => {
 		const startTime = performance.now();
 		try {
-			// const templateUrl = CONFIG.TEMPLATE_URL;
+			// 1. СРАЗУ запускаем парсинг донорской страницы
+			const assetsPromise = getPageAssets();
 
-			const [pageData, currentUser, /*htmlText*/ pageAssets] =
-				await Promise.all([
-					getEntityData(id, type),
-					getCurrentUser(),
-					// fetch(templateUrl).then(res => res.text()),
-					getPageAssets(),
-				]);
+			// 2. Запускаем сбор основных данных. Передаем туда assetsPromise!
+			// getEntityData и getPageAssets работают параллельно.
+			const pageDataPromise = getEntityData(id, type, assetsPromise);
 
-			// Передаем все ассеты в основной объект данных
+			// Дожидаемся окончания обоих процессов
+			const pageAssets = await assetsPromise;
+			const pageData = await pageDataPromise;
+
 			pageData.ASSETS = pageAssets;
 
-			// Если пользователь есть, добавляем его данные и ЗАПРАШИВАЕМ ЕГО СТИЛЬ
+			// Извлекаем юзера и CSS
+			const currentUser = pageAssets.USER_DATA;
 			if (currentUser) {
 				pageData.USER = currentUser;
-				// Запрашиваем CSS и добавляем его в pageData
-				pageData.USER_CSS = await getUserStyle(currentUser.USER_ID);
+				
+				// Используем CSS из донора, если разрешено настройками
+				if (CONFIG.USE_DONOR_CSS && pageAssets.CUSTOM_CSS !== null) {
+					pageData.USER_CSS = pageAssets.CUSTOM_CSS;
+				} else {
+					// Fallback: если отключено, можно использовать getUserStyle (если ты его оставишь)
+					// или просто оставить null
+					pageData.USER_CSS = await getUserStyle(currentUser.USER_ID); 
+				}
 			} else {
 				pageData.USER_CSS = null;
 			}
