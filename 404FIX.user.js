@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Shikimori 404 Fix
 // @namespace    http://tampermonkey.net/
-// @version      2.3
+// @version      2.4
 // @description  Fetch anime info and render 404 pages.
 // @author       404FT
 // @updateURL    https://raw.githubusercontent.com/404FT/404FIX/refs/heads/main/404FIX.user.js
@@ -33,6 +33,8 @@
 		TEMPLATE_URL:
 			"https://raw.githubusercontent.com/404FT/404FIX/refs/heads/main/404FIX.html",
 		DONOR_URL: "/animes/62616-sheng-dan-chuanqi-zhu-gong-de-shaizi",
+        JIKAN_BASE: "https://api.jikan.moe/v4",
+        JIKAN_CACHE_TTL: 7 * 24 * 60 * 60 * 1000, // 7 дней
 	};
 
 	// ANIME
@@ -303,7 +305,8 @@
 			</div>
 		</div>`;
 	};
-	
+
+
 	// --- LRU Кеш для API и тяжелых объектов ---
 	class LRUCache {
 		constructor(maxSize = 100) {
@@ -427,7 +430,64 @@
 			localStorage.setItem(this.keysKey, JSON.stringify(this.keys));
 		}
 	}
-	
+
+    // === JIKAN API — ЗАМЕНА АРТОВ (постеры + скриншоты) ===
+    const jikanImageCache = new PersistentLRUCache('jikan_images', 40, CONFIG.JIKAN_CACHE_TTL);
+
+    const fetchJikanMedia = async (malId, isAnime = true) => {
+        if (!malId) return { poster: null, screenshots: [] };
+
+        const cacheKey = `mal_${malId}_${isAnime ? 'a' : 'm'}`;
+        let cached = jikanImageCache.get(cacheKey);
+        if (cached) {
+            debug(`📦 Jikan media из кеша для MAL ${malId}`);
+            return cached;
+        }
+
+        const type = isAnime ? 'anime' : 'manga';
+
+        try {
+            log(`🌐 Запрос к Jikan API: ${type}/${malId}`);
+
+            // 1. Основная информация + большой постер
+            const infoRes = await fetch(`${CONFIG.JIKAN_BASE}/${type}/${malId}`, {
+                headers: { "User-Agent": CONFIG.USER_AGENT }
+            });
+            if (!infoRes.ok) throw new Error(`Jikan info: ${infoRes.status}`);
+            const infoJson = await infoRes.json();
+
+            const poster = infoJson.data?.images?.jpg?.large_image_url ||
+                  infoJson.data?.images?.jpg?.image_url || null;
+
+            // 2. Скриншоты / арты
+            const picRes = await fetch(`${CONFIG.JIKAN_BASE}/${type}/${malId}/pictures`, {
+                headers: { "User-Agent": CONFIG.USER_AGENT }
+            });
+            if (!picRes.ok) throw new Error(`Jikan pictures: ${picRes.status}`);
+            const picsJson = await picRes.json();
+
+            const screenshots = (picsJson.data || [])
+            .slice(0, 20) // не больше 20 кадров
+            .map((img, i) => ({
+                id: `jikan_${malId}_${i}`,
+                originalUrl: img.jpg?.image_url || img.webp?.image_url,
+                x166Url: img.jpg?.image_url || img.webp?.image_url,
+                x332Url: img.jpg?.image_url || img.webp?.image_url,
+            }));
+
+            const result = { poster, screenshots };
+
+            jikanImageCache.set(cacheKey, result);
+            log(`✅ Jikan API успешно: MAL ${malId} | постер: ${!!poster} | кадров: ${screenshots.length}`);
+
+            return result;
+
+        } catch (err) {
+            error(`❌ Jikan API ошибка для MAL ${malId}:`, err.message);
+            return { poster: null, screenshots: [] };
+        }
+    };
+
 	// Создаем экземпляры кеша
 	// const apiCache = new LRUCache(50); // Кеш для запросов (similar и т.д.)
 	const similarCache = new PersistentLRUCache('similar', 20, 24 * 60 * 60 * 1000);
@@ -556,6 +616,43 @@
 	 * @param {Number} userId ID текущего пользователя.
 	 * @returns {Promise<string|null>} Скомпилированный CSS или null в случае ошибки/отсутствия.
 	 */
+	/**
+	 * Fixes broken camo URLs in CSS by extracting and using the original URL directly.
+	 * Camo URLs format: https://camo-v3.shikimori.io/{hash}?url={original_url}
+	 * @param {String} css - CSS string potentially containing camo URLs
+	 * @returns {String} - CSS with fixed URLs
+	 */
+	const fixCamoUrls = (css) => {
+		if (!css) return css;
+
+		try {
+			// Match camo URLs in url() declarations
+			const camoRegex = /url\(['"]?(https?:\/\/camo-v3\.shikimori\.[^\/]+\/[^?]+\?url=([^'")]+))['"]?\)/gi;
+
+			let fixedCss = css.replace(camoRegex, (match, fullCamoUrl, encodedOriginalUrl) => {
+				try {
+					// Decode the original URL
+					const originalUrl = decodeURIComponent(encodedOriginalUrl);
+					debug(`🔧 Fixing camo URL: ${originalUrl}`);
+					return `url('${originalUrl}')`;
+				} catch (e) {
+					// If decoding fails, return original match
+					debug(`⚠️ Failed to decode camo URL: ${encodedOriginalUrl}`);
+					return match;
+				}
+			});
+
+			if (fixedCss !== css) {
+				log(`🔧 Fixed ${(css.match(camoRegex) || []).length} camo URL(s) in CSS`);
+			}
+
+			return fixedCss;
+		} catch (err) {
+			error("❌ Error fixing camo URLs:", err.message);
+			return css; // Return original CSS if processing fails
+		}
+	};
+
 	const getUserStyle = async (userId) => {
 		if (!userId) return null;
 
@@ -573,7 +670,7 @@
 
 				if (compiledCss) {
 					log(`🎨 Пользовательский CSS успешно получен.`);
-					return compiledCss;
+					return fixCamoUrls(compiledCss);
 				} else {
 					log(
 						`🎨 Стиль ${styleId} не содержит скомпилированного CSS.`,
@@ -653,7 +750,7 @@
 			// 4. Custom CSS пользователя
 			const customCssNode = doc.getElementById('custom_css');
 			if (customCssNode) {
-				assets.CUSTOM_CSS = customCssNode.innerHTML;
+				assets.CUSTOM_CSS = fixCamoUrls(customCssNode.innerHTML);
 				log("🎨 Кастомный CSS пользователя извлечен из донорской страницы.");
 			}
 
@@ -728,10 +825,11 @@
 	/**
 	 * @description Получает полные данные сущности через кеш или 2 параллельных GraphQL запроса (Main + Details)
 	 */
-	const getEntityData = async (id, type, assetsPromise) => {
+	const getEntityData = async (id, type, displayType, assetsPromise) => {
 		log(`📡 Загрузка данных: ${type} ID: ${id}`);
 
 		const isAnime = type === "anime";
+        const isRanobe = displayType === 'ranobe';
 		const queryMain = isAnime
 			? GRAPHQL_QUERY_ANIME_MAIN
 			: GRAPHQL_QUERY_MANGA_MAIN;
@@ -828,7 +926,30 @@
 		const detailsEntity = detailsList[0] || {}; // Если второй запрос упал, будет пустой объект
 
 		const entity = { ...mainEntity, ...detailsEntity };
-		
+
+        // ====================== JIKAN FALLBACK ======================
+        // Заменяем удалённые РКН-ом арты Shikimori на изображения с MAL
+        if (entity.malId) {
+            log(`🌐 Запрашиваем арты с Jikan API (MAL ${entity.malId})...`);
+            const jikanMedia = await fetchJikanMedia(entity.malId, isAnime);
+
+            // Постер
+            if (jikanMedia.poster) {
+                entity.poster = entity.poster || {};
+                entity.poster.originalUrl = jikanMedia.poster;
+                entity.poster.mainUrl = jikanMedia.poster;
+                entity.poster.miniAltUrl = jikanMedia.poster;
+                debug("✅ Постер заменён на Jikan");
+            }
+
+            // Скриншоты (приоритет Jikan, т.к. на Shiki их чаще всего вырезали)
+            if (jikanMedia.screenshots.length > 0) {
+                entity.screenshots = jikanMedia.screenshots;
+                debug(`✅ Скриншоты (${jikanMedia.screenshots.length} шт.) взяты с Jikan`);
+            }
+        }
+        // ============================================================
+
 		let listStatusData = null;
         if (userRateResult.status === "fulfilled" && Array.isArray(userRateResult.value)) {
             // API возвращает массив. Если статус есть, берем первый элемент.
@@ -990,12 +1111,12 @@
 
 		// 7. Сборка финального объекта
 		const finalData = {
-			// anime / manga
-			TYPE: type,
-			// Anime / Manga
-			TYPE_UP: isAnime ? "Anime" : "Manga",
-			// animes / mangas
-			TYPE_M: isAnime ? "animes" : "mangas",
+			// anime / manga / ranobe
+			TYPE: displayType || type,
+			// Anime / Manga / Ranobe
+			TYPE_UP: isAnime ? "Anime" : (isRanobe ? "Ranobe" : "Manga"),
+			// animes / mangas / ranobe
+			TYPE_M: isAnime ? "animes" : (isRanobe ? "ranobe" : "mangas"),
 			// https://shiki.one/api/doc/2.0/user_rates/index
 			LIST_STATUS: listStatusData ? {
                 id: listStatusData.id,
@@ -1021,7 +1142,7 @@
 				GENRES: entity.genres || [],
 				MYANIMELIST_ID: entity.malId,
 
-				COUNT_LABEL: isAnime ? "Эпизоды" : "Тома/Главы",
+				COUNT_LABEL: isAnime ? "Эпизоды" : (isRanobe ? "Тома / Главы" : "Тома/Главы"),
 				COUNT_VALUE: isAnime
 					? entity.episodes || "?"
 					: `${entity.volumes || "?"} / ${entity.chapters || "?"}`,
@@ -1031,7 +1152,7 @@
 						} мин.</div></div></div>`
 					: "",
 
-				ORG_LABEL: isAnime ? "Студия" : "Издатель",
+				ORG_LABEL: isAnime ? "Студия" : (isRanobe ? "Автор оригинала" : "Издатель"),
 				ORGANIZATIONS: isAnime
 					? entity.studios || []
 					: entity.publishers || [],
@@ -1081,7 +1202,8 @@
 					}))
 				: [],
 
-			SIMILAR_ANIMES: similarData.slice(0, 12),
+			SIMILAR_ANIMES: isAnime ? similarData.slice(0, 12) : [],
+			SIMILAR_MANGAS: !isAnime ? similarData.slice(0, 12) : [],
 			RELATED: processRelated(),
 			ROLES: rolesData,
 		};
@@ -2791,6 +2913,13 @@
 		document.dispatchEvent(new Event("DOMContentLoaded"));
 		// Для совместимости со старыми версиями
 		document.dispatchEvent(new Event("page:load"));
+		// Кастомное событие для других скриптов, которым нужно переинициализироваться
+		document.dispatchEvent(new CustomEvent("404fix:restored", {
+			detail: {
+				timestamp: Date.now(),
+				url: window.location.href
+			}
+		}));
 	};
 
 	/**
@@ -3412,21 +3541,25 @@
 		log(`🔄 Ручное восстановление ${type} ID: ${id}`);
 	};
 
-	const init = () => {
-		// Существующий код проверки 404 страницы
-		if (document.title.trim() !== "404") return;
+    const init = () => {
+        if (document.title.trim() !== "404") return;
 
-		const match = location.pathname.match(/\/(animes|mangas)\/([a-z0-9]+)/);
-		if (!match) return;
+        // Обновляем regex для поддержки ranobe
+        const match = location.pathname.match(/\/(animes|mangas|ranobe)\/([a-z0-9]+)/);
+        if (!match) return;
 
-		const typePlural = match[1];
-		let id = match[2];
-		id = id.replace(/\D/g, "");
-		const type = typePlural.slice(0, -1);
+        const typePlural = match[1];
+        let id = match[2];
+        id = id.replace(/\D/g, "");
 
-		showLoader();
-		renderEntityPage(id, type);
-	};
+        // ranobe использует тот же API что и manga
+        const type = typePlural === 'ranobe' ? 'manga' : typePlural.slice(0, -1);
+        // Но для шаблона нам нужен оригинальный тип
+        const displayType = typePlural === 'ranobe' ? 'ranobe' : typePlural.slice(0, -1);
+
+        showLoader();
+        renderEntityPage(id, type, displayType);
+    };
 
 	// ================================
 	// ОБРАБОТЧИКИ ДЛЯ TURBOLINKS/PJAX
